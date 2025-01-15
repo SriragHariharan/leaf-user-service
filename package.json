@@ -1,0 +1,23 @@
+{
+  "name": "user-service",
+  "version": "1.0.0",
+  "description": "A microservice of the leaf application that is responsible for performing authentication and profile related things.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon dist/app.js",
+    "start": "node dist/app.js"
+  },
+  "author": "Srirag H",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "http-errors": "^2.0.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "nodemon": "^3.1.9"
+  }
+}
