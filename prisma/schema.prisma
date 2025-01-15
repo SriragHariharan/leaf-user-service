@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql" // or "postgresql" depending on your AWS RDS setup
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  createdAt     DateTime @default(now())
+  status        String   @default("active") // Enum-like behavior can be handled in the application
+  emailVerified Boolean  @default(false)
+
+  Profile       Profile?
+  OTP           OTP[]
+  Friends       Friends[] @relation("UserFriends")
+  FriendOf      Friends[] @relation("FriendOf")
+  TravelHistory TravelHistory[]
+  BucketList    BucketList[]
+  ImageGallery  ImageGallery[]
+}
+
+model OTP {
+  id        Int      @id @default(autoincrement())
+  userID    String   @unique
+  otp       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime
+
+  User User @relation(fields: [userID], references: [id])
+}
+
+
+
+model Profile {
+  id             Int     @id @default(autoincrement())
+  userID         String @unique
+  username       String  
+  description    String?
+  profilePicture String?
+  coverPicture   String?
+  location       String?
+
+  User User @relation(fields: [userID], references: [id])
+}
+
+model Friends {
+  id        Int      @id @default(autoincrement())
+  userID    String
+  friendID  String
+  status    String
+  createdAt DateTime @default(now())
+
+  User     User     @relation("UserFriends", fields: [userID], references: [id])
+  FriendOf User     @relation("FriendOf", fields: [friendID], references: [id])
+}
+
+model TravelHistory {
+  id          Int     @id @default(autoincrement())
+  userID      String
+  destination String
+  yearVisited String
+
+  User   User   @relation(fields: [userID], references: [id])
+  Places Places[]
+}
+
+model Places {
+  id              Int    @id @default(autoincrement())
+  travelHistoryID Int
+  placeName       String
+
+  TravelHistory TravelHistory @relation(fields: [travelHistoryID], references: [id])
+}
+
+model BucketList {
+  id          Int     @id @default(autoincrement())
+  userID      String
+  destination String
+  notes       String?
+
+  User User @relation(fields: [userID], references: [id])
+}
+
+model ImageGallery {
+  id          Int      @id @default(autoincrement())
+  userID      String
+  galleryName String
+  createdAt   DateTime @default(now())
+
+  User   User    @relation(fields: [userID], references: [id])
+  Images Images[]
+}
+
+model Images {
+  id        Int      @id @default(autoincrement())
+  galleryID Int
+  imageURL  String
+  createdAt DateTime @default(now())
+
+  ImageGallery ImageGallery @relation(fields: [galleryID], references: [id])
+}
