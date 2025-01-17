@@ -86,7 +86,18 @@ class AuthController {
         }
     };
 
-    async resetPassword(req: Request, res: Response, next: NextFunction){};
+    async resetPassword(req: Request, res: Response, next: NextFunction){
+        try {
+            let { password, confirmPassword } = req.body;
+            if(password !== confirmPassword){
+                throw createHttpError(400, "Passwords mismatch");
+            }
+            await this.authService.resetPassword(req.user?.aud, req.body.password);
+            return res.status(200).json({ success: true, message: "Password reset successfull, Login to continue.", data: {} })
+        } catch (error) {
+            next(error);
+        }
+    };
 
     async resendOtp(req: Request, res: Response, next: NextFunction){
         try {

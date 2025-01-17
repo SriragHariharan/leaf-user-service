@@ -16,7 +16,7 @@ class AuthRepository implements IAuthRepository {
             return { id: response?.id, email: response?.email };
         } catch (error) {
             console.error("Error creating user:", error);
-            throw new Error("Failed to create user. Please try again.");
+            throw new Error("Something went wrong. Please try again.");
         }
     }
 
@@ -28,7 +28,7 @@ class AuthRepository implements IAuthRepository {
             return user;
         } catch (error) {
             console.error("Error finding user by email:", error);
-            throw new Error("Failed to fetch user. Please try again.");
+            throw new Error("Something went wrong. Please try again.");
         }
     }
 
@@ -51,7 +51,7 @@ class AuthRepository implements IAuthRepository {
             return otp;
         } catch (error) {
             console.error("Error saving OTP:", error);
-            throw new Error("Failed to save OTP. Please try again.");
+            throw new Error("Something went wrong. Please try again.");
         }
     }
 
@@ -62,7 +62,21 @@ class AuthRepository implements IAuthRepository {
             })
             return {otp: result?.otp!, expiresAt: result?.expiresAt!, userID: userID};
         } catch (error) {
-            throw new Error("Failed to validate OTP. Please try again.");
+            throw new Error("Something went wrong. Please try again.");
+        }
+    }
+
+    async resetPassword(userID: string, password: string): Promise<boolean> {
+        try {
+            await prisma.user.update({
+                where: { id: userID }, // Assuming the user is identified by 'id'
+                data: {
+                    password
+                },
+            });
+            return true;
+        } catch (error) {
+            throw new Error("Something went wrong. Please try again.");   
         }
     }
 }

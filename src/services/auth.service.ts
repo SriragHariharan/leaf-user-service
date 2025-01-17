@@ -154,6 +154,22 @@ class AuthService{
         return true;
     }
 
+    /* reset password */
+    async resetPassword(userID: string, password: string): Promise<boolean>{
+        try {
+            let hashedPassword = await bcrypt.hash(password, 10)
+            await this.authRepository.resetPassword(userID, hashedPassword);
+            return true;
+        } catch (error) {
+            if (createHttpError.isHttpError(error)) {
+                console.error("HTTP Error in createNewUser:", error.message);
+                throw error; // Re-throw known HTTP errors
+            } else {
+                console.error("Unexpected error:", error);
+                throw createHttpError(500, "An unexpected error occurred"); // HTTP 500 Internal Server Error
+            }
+        }
+    }
 
     /* Generate otp and store in OTP table */
     async generateAndStoreOtp(userID: string): Promise<boolean> {
