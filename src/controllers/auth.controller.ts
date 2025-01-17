@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import AuthService from '../services/auth.service';
 import createHttpError from 'http-errors';
+import { Auth } from '../interfaces/auth.interface';
 
 class AuthController {
     private authService: AuthService;
@@ -36,11 +37,54 @@ class AuthController {
         }
     }
 
-    async loginUser(req: Request, res: Response, next: NextFunction){};
+    async loginUser(req: Request, res: Response, next: NextFunction){
+        console.log(req.body, "   req body")
+        try {
+            let { email, password }: Auth = req.body;
+            if(!email || !password){
+                throw createHttpError(400, "Invalid user credentials");
+            }
+            //call service layer to check for email existence
+            let response = await this.authService.loginUser({email, password});
+            return res.status(200).json({ success: true, message: "Login successfull", data: { ...response }});
+        } catch (error) {
+            console.log("login controller error ::: ", error)
+            next(error);
+        }
+    };
 
-    async confirmEmail(req: Request, res: Response, next: NextFunction){};
+    async confirmEmail(req: Request, res: Response, next: NextFunction){
+        try {
+            let { email } = req.body;
+            if(!email){
+                throw createHttpError(400, "Invalid user credentials");
+            }
+            let resp = await this.authService.confirmUser(email);
+            return res.status(201).json({ success: true, message: "Email validated", data: { userID: resp }});
 
-    async confirmOTP(req: Request, res: Response, next: NextFunction){};
+        } catch (error) {
+            console.log("confirm email controller error ::: ", error);
+            next(error);
+        }
+    };
+
+    async confirmOTP(req: Request, res: Response, next: NextFunction){
+        try {
+            console.log(req.body)
+            let { otp, userID } = req.body;
+            if(!otp){
+                throw createHttpError(400, "Invalid OTP");
+            }
+            if(!userID){
+                throw createHttpError(500, "Something went wrong, try again after sometime");
+            } 
+            let otpDetails = await this.authService.validateOTP(otp, userID);
+            return res.status(200).json({ success: true, message: "OTP validated", data: { token: otpDetails }})
+
+        } catch (error) {
+            next(error);
+        }
+    };
 
     async resetPassword(req: Request, res: Response, next: NextFunction){};
 

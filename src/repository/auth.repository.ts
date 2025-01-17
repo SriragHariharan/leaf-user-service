@@ -19,7 +19,7 @@ class AuthRepository implements IAuthRepository {
             throw new Error("Failed to create user. Please try again.");
         }
     }
-    
+
     async findByEmail(email: string): Promise<Auth | null> {
         try {
             const user = await prisma.user.findUnique({
@@ -52,6 +52,17 @@ class AuthRepository implements IAuthRepository {
         } catch (error) {
             console.error("Error saving OTP:", error);
             throw new Error("Failed to save OTP. Please try again.");
+        }
+    }
+
+    async getOTP(userID: string): Promise<{otp: string, expiresAt: Date, userID: string}> {
+        try {
+            const result = await prisma.oTP.findUnique({
+                where: { userID }
+            })
+            return {otp: result?.otp!, expiresAt: result?.expiresAt!, userID: userID};
+        } catch (error) {
+            throw new Error("Failed to validate OTP. Please try again.");
         }
     }
 }

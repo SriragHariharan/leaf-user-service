@@ -20,11 +20,18 @@ authRouter.post("/signup", (req: Request, res: Response, next: NextFunction) => 
     authController.signupUser(req, res, next)
 });
 
-authRouter.post("/login", authController.loginUser);
+authRouter.post("/login", (req: Request, res: Response, next: NextFunction) => {
+    authController.loginUser(req, res, next)
+});
 
-authRouter.get("/confirm-email", authController.confirmEmail);
+authRouter.post("/confirm-email", (req: Request, res: Response, next: NextFunction) => {
+    authController.confirmEmail(req, res, next)
+});
 
-authRouter.post("/confirm-otp", authController.confirmOTP);
+
+authRouter.post("/confirm-otp", (req: Request, res: Response, next: NextFunction) => {
+    authController.confirmOTP(req, res, next)
+});
 
 authRouter.post("/reset-password", authController.resetPassword);
 
