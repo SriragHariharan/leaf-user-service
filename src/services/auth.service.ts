@@ -40,28 +40,24 @@ class AuthService{
             console.log("Updated username in profile table");
 
             // Generate OTP and store it in the OTP table
-            const otp = generateOtp();
-            console.log("OTP generated :::", otp);
-            const expiresAt = new Date();
-            expiresAt.setMinutes(expiresAt.getMinutes() + 3);
-            await this.authRepository.saveOTP({ userID: user?.id!, otp, expiresAt });
+            await this.generateAndStoreOtp(user?.id!);
 
             // Send OTP to notification service (e.g., via email or SMS)
             console.log("Sending OTP to the notification service");
 
             return true;
         } catch (error) {
-            // Use http-errors to standardize unexpected errors
             if (createHttpError.isHttpError(error)) {
                 console.error("HTTP Error in createNewUser:", error.message);
-                throw error; // Re-throw known HTTP errors
+                throw error;
             } else {
                 console.error("Unexpected error:", error);
-                throw createHttpError(500, "An unexpected error occurred"); // HTTP 500 Internal Server Error
+                throw createHttpError(500, "An unexpected error occurred");
             }
         }
     }
 
+    /* login existing user */
     async loginUser(authDetails: Auth): Promise<Object> {
         try {
             //check if user exists or not
@@ -94,6 +90,7 @@ class AuthService{
         }
     }
 
+    /* Confirm whether user is found in db or not */
     async confirmUser(email: string): Promise<string>{
         try {
             let userDetails = await this.authRepository.findByEmail(email);
@@ -101,13 +98,9 @@ class AuthService{
             if(!userDetails){
                 throw createHttpError(401, "Invalid email credentials");
             }
-            //generate otp and update in otp table
+
             // Generate OTP and store it in the OTP table
-            const otp = generateOtp();
-            console.log("OTP generated :::", otp);
-            const expiresAt = new Date();
-            expiresAt.setMinutes(expiresAt.getMinutes() + 3);
-            await this.authRepository.saveOTP({ userID: userDetails?.id!, otp, expiresAt });
+            await this.generateAndStoreOtp(userDetails?.id!);
 
             return userDetails?.id!;
         } catch (error) {
@@ -121,6 +114,7 @@ class AuthService{
         }
     }
 
+    /* Validate the otp after confirm email page */
     async validateOTP(otp: string, userID: string): Promise<string>{
         try {
             let otpDetails = await this.authRepository.getOTP(userID);
@@ -143,7 +137,6 @@ class AuthService{
                     return accessToken;
                 }
             }
-
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
                 console.error("HTTP Error in createNewUser:", error.message);
@@ -155,7 +148,26 @@ class AuthService{
         }
     }
 
+    /* resend otp on timer expiry */
+    async resendOtp(userID: string): Promise<boolean> {
+        await this.generateAndStoreOtp(userID);
+        return true;
+    }
 
+
+    /* Generate otp and store in OTP table */
+    async generateAndStoreOtp(userID: string): Promise<boolean> {
+        try {
+            const otp = generateOtp();
+            console.log("OTP generated :::", otp);
+            const expiresAt = new Date();
+            expiresAt.setMinutes(expiresAt.getMinutes() + 3);
+            await this.authRepository.saveOTP({ userID, otp, expiresAt });
+            return true;
+        } catch (error) {
+            throw createHttpError(500, "An unexpected error occurred");
+        }
+    }
 
 };
 

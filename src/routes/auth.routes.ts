@@ -3,6 +3,7 @@ import AuthController from "../controllers/auth.controller";
 import AuthService from "../services/auth.service";
 import AuthRepository from "../repository/auth.repository";
 import UsernameRepository from "../repository/profile.repository";
+import { validateAccessToken } from "../helpers/jwt.helper";
 
 const authRouter = Router();
 
@@ -35,6 +36,8 @@ authRouter.post("/confirm-otp", (req: Request, res: Response, next: NextFunction
 
 authRouter.post("/reset-password", authController.resetPassword);
 
-authRouter.post("/resend-otp", authController.resendOtp)
+authRouter.post("/resend-otp", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    authController.resendOtp(req, res, next)
+});
 
 export default authRouter;

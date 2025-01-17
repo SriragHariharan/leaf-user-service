@@ -88,7 +88,15 @@ class AuthController {
 
     async resetPassword(req: Request, res: Response, next: NextFunction){};
 
-    async resendOtp(req: Request, res: Response, next: NextFunction){};
+    async resendOtp(req: Request, res: Response, next: NextFunction){
+        try {
+            const aud = req.user?.aud!;
+            await this.authService.resendOtp(aud!)
+            return res.status(201).json({ success: true, message: "OTP resent", data: {} })
+        } catch (error) {
+            next(error);
+        }
+    };
 
 }
 
