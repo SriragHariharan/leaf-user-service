@@ -30,7 +30,7 @@ class AuthController {
             // Alter and return the response back to the user
             return res
                 .status(201)
-                .json({ success: true, message: "User signup successful", data: {} });
+                .json({ success: true, message: "User signup successful", data: { userID: dataFromService } });
         } catch (error) {
             console.error("Controller Error :::", error);
             next(error);
@@ -59,8 +59,8 @@ class AuthController {
             if(!email){
                 throw createHttpError(400, "Invalid user credentials");
             }
-            let resp = await this.authService.confirmUser(email);
-            return res.status(201).json({ success: true, message: "Email validated", data: { userID: resp }});
+            await this.authService.confirmUser(email);
+            return res.status(201).json({ success: true, message: "A password reset link has been shared to your email. Visit the link to reset the password", data: {}});
 
         } catch (error) {
             console.log("confirm email controller error ::: ", error);

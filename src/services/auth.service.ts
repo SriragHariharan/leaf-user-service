@@ -17,7 +17,7 @@ class AuthService{
     }
 
     /*create user account*/
-    async createNewUser(authDetails: Auth): Promise<boolean> {
+    async createNewUser(authDetails: Auth): Promise<string> {
         console.log(authDetails, " to repo");
         try {
             // Check if user already exists in the database
@@ -45,7 +45,7 @@ class AuthService{
             // Send OTP to notification service (e.g., via email or SMS)
             console.log("Sending OTP to the notification service");
 
-            return true;
+            return user?.id!;
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
                 console.error("HTTP Error in createNewUser:", error.message);
@@ -58,7 +58,7 @@ class AuthService{
     }
 
     /* login existing user */
-    async loginUser(authDetails: Auth): Promise<Object> {
+    async loginUser(authDetails: Auth): Promise<{accessToken: string, refreshToken: string}> {
         try {
             //check if user exists or not
             let userDetails = await this.authRepository.findByEmail(authDetails?.email!);
@@ -91,7 +91,7 @@ class AuthService{
     }
 
     /* Confirm whether user is found in db or not */
-    async confirmUser(email: string): Promise<string>{
+    async confirmUser(email: string): Promise<boolean>{
         try {
             let userDetails = await this.authRepository.findByEmail(email);
             console.log(userDetails)
@@ -99,10 +99,16 @@ class AuthService{
                 throw createHttpError(401, "Invalid email credentials");
             }
 
-            // Generate OTP and store it in the OTP table
-            await this.generateAndStoreOtp(userDetails?.id!);
+            //await this.generateAndStoreOtp(userDetails?.id!);
+            // Generate reset link
+            const accessToken = signAccessToken(userDetails?.id!);
+            const resetLink = "http://localhost:8080/reset-password?token=" + accessToken;
+            console.log("reset link ::: ", resetLink);
 
-            return userDetails?.id!;
+            //send to notification service
+            console.log("send reset link to notification service")
+
+            return true;
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
                 console.error("HTTP Error in createNewUser:", error.message);

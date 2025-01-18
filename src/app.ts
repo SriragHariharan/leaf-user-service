@@ -30,8 +30,4 @@ app.use((err: any, req:Request, res:Response, next: NextFunction) => {
   })
 })
 
-app.get("/test", (_req: Request, res: Response) => {
-    res.send({message: "This is a test route", route: "/test"});
-})
-
-app.listen(process.env.PORT || 5000, () => console.log("server running@5000"))
+app.listen(process.env.PORT, () => console.log("server running at " + process.env.PORT))
