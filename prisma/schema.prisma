@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql" // or "postgresql" depending on your AWS RDS setup
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 

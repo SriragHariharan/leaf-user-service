@@ -79,6 +79,32 @@ class AuthRepository implements IAuthRepository {
             throw new Error("Something went wrong. Please try again.");   
         }
     }
+
+    async saveOauthUser(email: string, provider: string, name: string, picture: string): Promise<Auth> {
+         try {
+            const response = await prisma.user.create({
+                data: {
+                    email: email!,
+                    provider: provider!
+                },
+            });
+
+            //update profile table with username and image
+            await prisma.profile.create({
+                data: {
+                    userID: response?.id!,
+                    username: name,
+                    profilePicture: picture
+                },
+            });
+
+            console.log("db insertion resp ::: ", response);
+            return { id: response?.id, email: response?.email, provider, username: name, profilePicture: picture };
+        } catch (error) {
+            console.error("Error creating user:", error);
+            throw new Error("Something went wrong. Please try again.");
+        }
+    }
 }
 
 export default AuthRepository;

@@ -42,4 +42,8 @@ authRouter.post("/resend-otp", validateAccessToken, (req: Request, res: Response
     authController.resendOtp(req, res, next)
 });
 
+authRouter.post("/oauth-signup", (req: Request, res: Response, next: NextFunction) => {
+    authController.oAuthSignup(req, res, next)
+});
+
 export default authRouter;

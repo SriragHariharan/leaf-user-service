@@ -192,6 +192,34 @@ class AuthService{
         }
     }
 
+    /* signup user via oauth: Google, fb, twitter etc... */
+    async ouathSignup(email: string, picture: string, name: string, provider: string): Promise<{accessToken: string, refreshToken: string}> {
+        try {
+            let userDetails = await this.authRepository.findByEmail(email!);
+            console.log("user details ::: ", userDetails);
+            //if not user, add a new one
+            if(!userDetails){
+                let resp = await this.authRepository.saveOauthUser(email, provider, name, picture);
+                console.log(resp, " ::: response from DB")
+                const accessToken = signAccessToken(resp?.id!)
+                const refreshToken = signRefreshToken(resp?.id!)
+                //attach username and image from profile service and send
+                return { accessToken, refreshToken };
+            }
+            else{
+                if(userDetails?.provider === provider){
+                    const accessToken = signAccessToken(userDetails?.id!)
+                    const refreshToken = signRefreshToken(userDetails?.id!)
+                    //attach username and image from profile service and send
+                    return { accessToken, refreshToken };
+                }else{
+                    throw new Error("Try other signin methods")
+                }
+            }
+        } catch (error) {
+            throw createHttpError(500, "An unexpected error occurred");
+        }
+    }
 };
 
 export default AuthService;

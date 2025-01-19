@@ -109,6 +109,17 @@ class AuthController {
         }
     };
 
+    async oAuthSignup(req: Request, res: Response, next: NextFunction){
+        try {
+            let { email, name, picture, provider } = req.body;
+            if(!email) throw createHttpError(400, "Email not found");
+            let response = await this.authService.ouathSignup(email, picture, name, provider)
+            return res.status(200).json({ success: true, message: "Login successfull", data: { ...response }});
+        } catch (error) {
+            next(error);
+        }
+    }
+
 }
 
 export default AuthController;
