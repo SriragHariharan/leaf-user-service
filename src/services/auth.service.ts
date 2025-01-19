@@ -121,7 +121,7 @@ class AuthService{
     }
 
     /* Validate the otp after confirm email page */
-    async validateOTP(otp: string, userID: string): Promise<string>{
+    async validateOTP(otp: string, userID: string): Promise<{accessToken: string, refreshToken: string}>{
         try {
             let otpDetails = await this.authRepository.getOTP(userID);
             console.log(otpDetails);
@@ -140,7 +140,8 @@ class AuthService{
                     throw createHttpError(400, "Invalid OTP");
                 }else{
                     let accessToken = signAccessToken(otpDetails?.userID!);
-                    return accessToken;
+                    let refreshToken = signRefreshToken(otpDetails?.userID!);
+                    return {accessToken, refreshToken};
                 }
             }
         } catch (error) {
