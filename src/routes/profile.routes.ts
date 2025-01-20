@@ -16,4 +16,14 @@ profileRouter.put("/username", validateAccessToken, (req: Request, res: Response
     profileController.updateUsername(req, res, next)
 });
 
+/* update description router */
+profileRouter.put("/description", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    profileController.updateDescription(req, res, next)
+});
+
+/* update location router */
+profileRouter.put("/location", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    profileController.updateLocation(req, res, next)
+});
+
 export default profileRouter;

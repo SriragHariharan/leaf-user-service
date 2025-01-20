@@ -21,6 +21,32 @@ class ProfileController{
             next(error);
         }
     }
+
+    /* update description controller */
+    async updateDescription(req: Request, res: Response, next: NextFunction){
+        try {
+            const userID = req.user?.aud!;
+            const { description } = req.body;
+            if(!description) throw createHttpError(400, "Description cannot be empty");
+            let response = await this.profileService.updateUserDescription(description, userID);
+            return res.status(200).json({ success: true, message: "Description updated", data: { response }})
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /* update description controller */
+    async updateLocation(req: Request, res: Response, next: NextFunction){
+        try {
+            const userID = req.user?.aud!;
+            const { location } = req.body;
+            if(!location) throw createHttpError(400, "Location cannot be empty");
+            let response = await this.profileService.updateUserLocation(location, userID);
+            return res.status(200).json({ success: true, message: "Location updated", data: { response }})
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 export default ProfileController
