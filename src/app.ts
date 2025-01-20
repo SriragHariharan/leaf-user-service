@@ -3,6 +3,7 @@ import 'dotenv/config'
 import authRouter from './routes/auth.routes';
 import createHttpError from 'http-errors';
 import bodyParser from 'body-parser';
+import profileRouter from './routes/profile.routes';
 
 const app = express();
 
@@ -12,7 +13,7 @@ app.use(bodyParser.json())
 
 //route all requests with a specific endpoint
 app.use('/auth', authRouter)
-// app.use('/users', profileRouter)
+app.use('/profile', profileRouter)
 
 //handle endpoints not found: 404
 app.use(async (req, res, next) => {
