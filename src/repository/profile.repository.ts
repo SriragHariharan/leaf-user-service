@@ -118,6 +118,7 @@ class ProfileRepository implements IUsernameRepository, IProfileRepository{
             }
     }
 
+    /* get travel history */
     async getTravelHistoryWithPlaces(userID: string) {
         try {
             const travelHistories = await prisma.travelHistory.findMany({
@@ -130,6 +131,36 @@ class ProfileRepository implements IUsernameRepository, IProfileRepository{
         } catch (error) {
             console.error("Error fetching travel history:", error);
             throw new Error("Unable to fetch travel history.");
+        }
+    }
+
+    /* add bucket list */
+    async addBucketList(userID: string, destination: string, notes: string): Promise<Object> {
+        try {
+            const bucketListEntry = await prisma.bucketList.create({
+                data: {
+                    userID,
+                    destination,
+                    notes,
+                },
+            });
+            return bucketListEntry;
+        } catch (error) {
+            console.error("Error adding to bucket list:", error);
+            throw new Error("Unable to add to bucket list.");
+        }
+    }
+
+    /* get bucket list of a specific user */
+    async getBucketList(userID: string): Promise<Object[]> {
+        try {
+            const bucketList = await prisma.bucketList.findMany({
+                where: { userID },
+            });
+            return bucketList;
+        } catch (error) {
+            console.error("Error fetching user bucket list:", error);
+            throw new Error("Unable to fetch user bucket list.");
         }
     }
 }

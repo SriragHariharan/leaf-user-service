@@ -63,9 +63,35 @@ class ProfileController{
         }
     }
 
+    /* get travel history */
     async getTravelHistory(req: Request, res: Response, next: NextFunction){
         try {
             let response = await this.profileService.getTravelHistory(req.user?.aud!);
+            return res.status(200).json({ success: true, message: "Travel history fetched", data: { ...response }});
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /* add bucket list */
+    async addBucketList(req: Request, res: Response, next: NextFunction){
+        try {
+            const userID = req.user?.aud!;
+            const { destination, notes } = req.body;
+            if(!destination || !notes ){
+                throw createHttpError(400, "All fields are required.");
+            }
+            let response = await this.profileService.addBucketListDestination( userID, destination, notes );
+            return res.status(201).json({ success: true, message: "Travel history updated", data: { ...response }})
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /* get travel history */
+    async getBucketList(req: Request, res: Response, next: NextFunction){
+        try {
+            let response = await this.profileService.getBucketListDestination(req.user?.aud!);
             return res.status(200).json({ success: true, message: "Travel history fetched", data: { ...response }});
         } catch (error) {
             next(error);

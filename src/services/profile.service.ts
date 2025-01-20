@@ -57,7 +57,23 @@ class ProfileService{
             return await this.profileRepository.getTravelHistoryWithPlaces(userID);
         } catch (error) {
             console.error("Unexpected error:", error);
-            throw createHttpError(500, "An unexpected error occurred");
+            throw createHttpError(500, "Unable to fetch user's travel history");
+        }
+    }
+
+    async addBucketListDestination(userID: string, destination: string, notes: string): Promise<Object>{
+        try {
+            return await this.profileRepository.addBucketList(userID, destination, notes)
+        } catch (error) {
+            throw createHttpError(500, "Unable to add item to bucket list");
+        }
+    }
+
+    async getBucketListDestination(userID: string): Promise<Object>{
+        try {
+            return await this.profileRepository.getBucketList(userID)
+        } catch (error) {
+            throw createHttpError(500, "Unable to fetch user's bucket list");
         }
     }
 }

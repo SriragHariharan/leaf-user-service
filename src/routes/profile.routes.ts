@@ -31,9 +31,18 @@ profileRouter.post("/travel-history", validateAccessToken, (req: Request, res: R
     profileController.addTravelHistory(req, res, next)
 });
 
-/* add travel history router */
+/* get travel history router */
 profileRouter.get("/travel-history", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
     profileController.getTravelHistory(req, res, next)
 });
 
+/* add bucket list router */
+profileRouter.post("/bucket-list", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    profileController.addBucketList(req, res, next)
+});
+
+/* get bucket list router */
+profileRouter.get("/bucket-list", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    profileController.getBucketList(req, res, next)
+});
 export default profileRouter;
