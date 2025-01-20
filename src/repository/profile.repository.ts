@@ -81,6 +81,57 @@ class ProfileRepository implements IUsernameRepository, IProfileRepository{
             throw createHttpError(500, "Unable to update location.");
         }
     }
+
+    /* add travel history */
+    async addTravelHistory(location: string, year: string, places: Array<string>, userID: string)
+        : Promise<{ location: string; year: string; places: Array<string>, id: number }> 
+        {
+            try {
+                const travelHistoryResponse = await prisma.travelHistory.create({
+                    data: {
+                        destination: location,
+                        yearVisited: year,
+                        userID
+                    }
+                });
+
+                const travelHistoryID = travelHistoryResponse.id;
+
+                // Create places entries
+                const placesData = places.map(place => ({
+                    travelHistoryID,
+                    placeName: place
+                }));
+
+                // Insert places
+                await prisma.places.createMany({ data: placesData });
+
+                return {
+                    id: travelHistoryID,
+                    location: travelHistoryResponse.destination,
+                    year: travelHistoryResponse.yearVisited,
+                    places: places
+                };
+            } catch (error) {
+                console.error("Error adding travel history:", error);
+                throw createHttpError(500, "Unable to add travel history.");
+            }
+    }
+
+    async getTravelHistoryWithPlaces(userID: string) {
+        try {
+            const travelHistories = await prisma.travelHistory.findMany({
+                where: { userID },
+                include: {
+                    Places: true,
+                },
+            });
+            return travelHistories;
+        } catch (error) {
+            console.error("Error fetching travel history:", error);
+            throw new Error("Unable to fetch travel history.");
+        }
+    }
 }
 
 export default ProfileRepository;

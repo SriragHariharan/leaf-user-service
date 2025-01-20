@@ -40,6 +40,26 @@ class ProfileService{
             throw createHttpError(500, "An unexpected error occurred");
         }
     }
+
+    /* add travel history */
+    async addTravelHistory(location: string, year: string, places:Array<string>, userID: string): Promise<{location: string, year: number|string, places:Array<string>}> {   
+        try {
+            return await this.profileRepository.addTravelHistory(location, year, places, userID);
+        } catch (error) {
+            console.error("Unexpected error:", error);
+            throw createHttpError(500, "An unexpected error occurred");
+        }
+    }
+
+    /* get travel history */
+    async getTravelHistory(userID: string): Promise<Object> {
+        try {
+            return await this.profileRepository.getTravelHistoryWithPlaces(userID);
+        } catch (error) {
+            console.error("Unexpected error:", error);
+            throw createHttpError(500, "An unexpected error occurred");
+        }
+    }
 }
 
 export default ProfileService;

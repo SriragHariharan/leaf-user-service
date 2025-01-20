@@ -26,4 +26,14 @@ profileRouter.put("/location", validateAccessToken, (req: Request, res: Response
     profileController.updateLocation(req, res, next)
 });
 
+/* add travel history router */
+profileRouter.post("/travel-history", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    profileController.addTravelHistory(req, res, next)
+});
+
+/* add travel history router */
+profileRouter.get("/travel-history", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    profileController.getTravelHistory(req, res, next)
+});
+
 export default profileRouter;

@@ -47,6 +47,30 @@ class ProfileController{
             next(error);
         }
     }
+
+    /* add travel history */
+    async addTravelHistory(req: Request, res: Response, next: NextFunction){
+        try {
+            const userID = req.user?.aud!;
+            const { location, year, places } = req.body;
+            if(!location || !year || !places || places.length===0){
+                throw createHttpError(400, "All fields are required.");
+            }
+            let response = await this.profileService.addTravelHistory(location, year, places, userID)
+            return res.status(201).json({ success: true, message: "Travel history updated", data: { ...response }})
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getTravelHistory(req: Request, res: Response, next: NextFunction){
+        try {
+            let response = await this.profileService.getTravelHistory(req.user?.aud!);
+            return res.status(200).json({ success: true, message: "Travel history fetched", data: { ...response }});
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 export default ProfileController
