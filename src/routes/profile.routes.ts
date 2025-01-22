@@ -3,6 +3,7 @@ import ProfileRepository from "../repository/profile.repository";
 import ProfileService from "../services/profile.service";
 import ProfileController from "../controllers/profile.controller";
 import { validateAccessToken } from "../helpers/jwt.helper";
+import multer from 'multer';
 
 const profileRouter = Router();
 
@@ -45,4 +46,6 @@ profileRouter.post("/bucket-list", validateAccessToken, (req: Request, res: Resp
 profileRouter.get("/bucket-list", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
     profileController.getBucketList(req, res, next)
 });
+
+
 export default profileRouter;

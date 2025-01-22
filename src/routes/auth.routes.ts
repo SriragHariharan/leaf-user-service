@@ -38,7 +38,7 @@ authRouter.post("/reset-password", validateAccessToken, (req: Request, res: Resp
     authController.resetPassword(req, res, next)
 });
 
-authRouter.post("/resend-otp", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+authRouter.post("/resend-otp", (req: Request, res: Response, next: NextFunction) => {
     authController.resendOtp(req, res, next)
 });
 

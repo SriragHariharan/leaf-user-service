@@ -101,8 +101,11 @@ class AuthController {
 
     async resendOtp(req: Request, res: Response, next: NextFunction){
         try {
-            const aud = req.user?.aud!;
-            await this.authService.resendOtp(aud!)
+            const userID = req.body.userID;
+            if(!userID){
+                throw createHttpError(403, "Unautorized request");
+            }
+            await this.authService.resendOtp(userID);
             return res.status(201).json({ success: true, message: "OTP resent", data: {} })
         } catch (error) {
             next(error);

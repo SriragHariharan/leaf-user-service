@@ -184,7 +184,7 @@ class AuthService{
             const otp = generateOtp();
             console.log("OTP generated :::", otp);
             const expiresAt = new Date();
-            expiresAt.setMinutes(expiresAt.getMinutes() + 3);
+            expiresAt.setMinutes(expiresAt.getMinutes() + Number(process.env.OTP_EXPIRATION_MINUTES));
             await this.authRepository.saveOTP({ userID, otp, expiresAt });
             return true;
         } catch (error) {
