@@ -78,8 +78,8 @@ class AuthController {
             if(!userID){
                 throw createHttpError(500, "Something went wrong, try again after sometime");
             } 
-            let otpDetails = await this.authService.validateOTP(otp, userID);
-            return res.status(200).json({ success: true, message: "OTP validated", data: { token: otpDetails }})
+            let userDetails = await this.authService.validateOTP(otp, userID);
+            return res.status(200).json({ success: true, message: "OTP validated", data: {...userDetails }})
 
         } catch (error) {
             next(error);

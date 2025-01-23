@@ -7,4 +7,5 @@ export interface IProfileRepository{
     addBucketList(userID: string, destination: string, notes: string): Promise<Object>
     getBucketList(userID: string): Promise<Object>
     updatePicture(userID: string, picture: string, type: string): Promise<boolean>
+    getProfileDetails(userID: string): Promise<Object>
 }

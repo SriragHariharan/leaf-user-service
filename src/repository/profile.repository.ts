@@ -4,6 +4,18 @@ import { IProfileRepository } from "../interfaces/IProfileRepository";
 import { IUsernameRepository } from "../interfaces/IUsernameRepository";
 
 class ProfileRepository implements IUsernameRepository, IProfileRepository{
+
+    async getProfileDetails(userID: string): Promise<Object> {
+        try {
+            const userProfile = await prisma.profile.findUnique({
+                where: { userID },
+            });
+            if(!userProfile) throw createHttpError(404, "User not found");
+            return userProfile;
+        } catch (error) {
+            throw createHttpError(500, "Something went wrong.");
+        }
+    }
     
     async updateUsername(userID: string, username: string): Promise<string> {
         try {

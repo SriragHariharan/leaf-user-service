@@ -3,12 +3,23 @@ import { IProfileRepository } from "../interfaces/IProfileRepository";
 import { Size } from "../interfaces/size.interface";
 import resizeImage from "../helpers/sharp.helper";
 import uploadToS3 from "../helpers/s3Bucket.helper";
+import { Auth } from "../interfaces/auth.interface";
 
 class ProfileService{
 
     private profileRepository: IProfileRepository
     constructor(profileRepository: IProfileRepository){
         this.profileRepository = profileRepository;
+    }
+
+    /* get user profile controller */
+    async getProfileDetails(userID: string): Promise<Object>{
+        try {
+            let userDetails = await this.profileRepository.getProfileDetails(userID);
+            return userDetails;
+        } catch (error) {
+            throw createHttpError(500, "Unable to get user profile details");
+        }
     }
 
     /* update the existing username service */

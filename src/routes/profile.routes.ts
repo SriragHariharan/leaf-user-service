@@ -12,6 +12,11 @@ const profileRepository = new ProfileRepository();
 const profileService = new ProfileService(profileRepository);
 const profileController = new ProfileController(profileService);
 
+/* get profile details */
+profileRouter.get("/:id", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    profileController.getProfileDetails(req, res, next)
+});
+
 /* update username router */
 profileRouter.put("/username", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
     profileController.updateUsername(req, res, next)
@@ -33,7 +38,7 @@ profileRouter.post("/travel-history", validateAccessToken, (req: Request, res: R
 });
 
 /* get travel history router */
-profileRouter.get("/travel-history", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+profileRouter.get("/travel-history/:id", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
     profileController.getTravelHistory(req, res, next)
 });
 
@@ -43,7 +48,7 @@ profileRouter.post("/bucket-list", validateAccessToken, (req: Request, res: Resp
 });
 
 /* get bucket list router */
-profileRouter.get("/bucket-list", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+profileRouter.get("/bucket-list/:id", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
     profileController.getBucketList(req, res, next)
 });
 
