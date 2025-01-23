@@ -58,7 +58,7 @@ class AuthService{
     }
 
     /* login existing user */
-    async loginUser(authDetails: Auth): Promise<{accessToken: string, refreshToken: string}> {
+    async loginUser(authDetails: Auth): Promise<{accessToken: string, refreshToken: string, username: string, profilePicture: string|null}> {
         try {
             //check if user exists or not
             let userDetails = await this.authRepository.findByEmail(authDetails?.email!);
@@ -75,9 +75,11 @@ class AuthService{
             const accessToken = signAccessToken(userDetails?.id!);
             const refreshToken = signRefreshToken(userDetails?.id!);
             console.log(accessToken, refreshToken, " ::: axt rft")
+
+            const basicUserProfile = await this.authRepository.getBasicProfile(userDetails?.id!)
             
             /* get username and dp and attach with it and send in future */
-            return { accessToken, refreshToken };
+            return { accessToken, refreshToken, username: basicUserProfile?.username, profilePicture: basicUserProfile?.profilePicture };
             
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
@@ -121,7 +123,7 @@ class AuthService{
     }
 
     /* Validate the otp after confirm email page */
-    async validateOTP(otp: string, userID: string): Promise<{accessToken: string, refreshToken: string}>{
+    async validateOTP(otp: string, userID: string): Promise<{accessToken: string, refreshToken: string, username: string, profilePicture: string|null}>{
         try {
             let otpDetails = await this.authRepository.getOTP(userID);
             console.log(otpDetails);
@@ -139,9 +141,10 @@ class AuthService{
                     console.log("incorrect otp")
                     throw createHttpError(400, "Invalid OTP");
                 }else{
+                    const basicUserProfile = await this.authRepository.getBasicProfile(userID)
                     let accessToken = signAccessToken(otpDetails?.userID!);
                     let refreshToken = signRefreshToken(otpDetails?.userID!);
-                    return {accessToken, refreshToken};
+                    return {accessToken, refreshToken, username: basicUserProfile?.username, profilePicture: basicUserProfile?.profilePicture};
                 }
             }
         } catch (error) {
@@ -193,7 +196,7 @@ class AuthService{
     }
 
     /* signup user via oauth: Google, fb, twitter etc... */
-    async ouathSignup(email: string, picture: string, name: string, provider: string): Promise<{accessToken: string, refreshToken: string}> {
+    async ouathSignup(email: string, picture: string, name: string, provider: string): Promise<{accessToken: string, refreshToken: string, username: string, profilePicture: string | null}> {
         try {
             let userDetails = await this.authRepository.findByEmail(email!);
             console.log("user details ::: ", userDetails);
@@ -204,14 +207,14 @@ class AuthService{
                 const accessToken = signAccessToken(resp?.id!)
                 const refreshToken = signRefreshToken(resp?.id!)
                 //attach username and image from profile service and send
-                return { accessToken, refreshToken };
+                return { accessToken, refreshToken, username: name, profilePicture: picture};
             }
             else{
                 if(userDetails?.provider === provider){
                     const accessToken = signAccessToken(userDetails?.id!)
                     const refreshToken = signRefreshToken(userDetails?.id!)
-                    //attach username and image from profile service and send
-                    return { accessToken, refreshToken };
+                    const basicUserProfile = await this.authRepository.getBasicProfile(userDetails?.id!);
+                    return { accessToken, refreshToken, username: basicUserProfile?.username, profilePicture: basicUserProfile?.profilePicture };
                 }else{
                     throw new Error("Try other signin methods")
                 }

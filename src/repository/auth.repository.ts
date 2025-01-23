@@ -1,6 +1,7 @@
 import { Auth } from "../interfaces/auth.interface";
 import { IAuthRepository } from "../interfaces/IAuthRepository";
 import prisma from "../helpers/prisma.helper";
+import createHttpError from "http-errors";
 
 class AuthRepository implements IAuthRepository {
     /* create user */
@@ -105,6 +106,29 @@ class AuthRepository implements IAuthRepository {
             throw new Error("Something went wrong. Please try again.");
         }
     }
+
+    /* get basic profile details such as username and profile picture */
+    async getBasicProfile(userID: string) {
+    try {
+        // Fetch the user's profile with only the specified fields
+        const userProfile = await prisma.profile.findUnique({
+            where: { userID },
+            select: {
+                username: true,
+                profilePicture: true,
+            },
+        });
+
+        if (!userProfile) {
+            throw createHttpError(404, "Profile not found");
+        }
+
+        return userProfile; // Return the user's profile
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        throw new Error("Something went wrong. Please try again.");
+    }
+}
 }
 
 export default AuthRepository;
