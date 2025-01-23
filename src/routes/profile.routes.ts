@@ -3,7 +3,7 @@ import ProfileRepository from "../repository/profile.repository";
 import ProfileService from "../services/profile.service";
 import ProfileController from "../controllers/profile.controller";
 import { validateAccessToken } from "../helpers/jwt.helper";
-import multer from 'multer';
+import upload from "../helpers/multer.helper";
 
 const profileRouter = Router();
 
@@ -47,5 +47,8 @@ profileRouter.get("/bucket-list", validateAccessToken, (req: Request, res: Respo
     profileController.getBucketList(req, res, next)
 });
 
+profileRouter.post("/picture/:type", validateAccessToken, upload.single("picture"), (req: Request, res: Response, next: NextFunction) => {
+    profileController.uploadPicture(req, res, next)
+});
 
 export default profileRouter;

@@ -6,4 +6,5 @@ export interface IProfileRepository{
     getTravelHistoryWithPlaces(userID: string): Promise<Object>
     addBucketList(userID: string, destination: string, notes: string): Promise<Object>
     getBucketList(userID: string): Promise<Object>
+    updatePicture(userID: string, picture: string, type: string): Promise<boolean>
 }

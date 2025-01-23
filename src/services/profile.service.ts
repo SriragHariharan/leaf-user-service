@@ -1,5 +1,8 @@
 import createHttpError from "http-errors";
 import { IProfileRepository } from "../interfaces/IProfileRepository";
+import { Size } from "../interfaces/size.interface";
+import resizeImage from "../helpers/sharp.helper";
+import uploadToS3 from "../helpers/s3Bucket.helper";
 
 class ProfileService{
 
@@ -74,6 +77,46 @@ class ProfileService{
             return await this.profileRepository.getBucketList(userID)
         } catch (error) {
             throw createHttpError(500, "Unable to fetch user's bucket list");
+        }
+    }
+
+    /*
+     *   Below is the service for uploading the profile picture and cover picture to the aws s3 after resize and compression
+    */
+    async uploadPicture(imageBuffer: Buffer, sizes: Size[], type: string, userID: string): Promise<string> {
+        try {
+            let croppedImagesArray = await resizeImage(imageBuffer, sizes);
+            
+            if (type === "profile") {
+                /* collect the buffers */
+                const profilePictureBufferString = croppedImagesArray[0]?.buffer;
+
+                /* generate image names */
+                const profilePictureImageName = `profile/${userID}-s200.jpg`;
+
+                /* upload to s3 buckets */
+                const profilePictureUrl = await uploadToS3(profilePictureBufferString, profilePictureImageName);
+
+                /* update to db */
+                await this.profileRepository.updatePicture(userID, profilePictureUrl, type);
+
+                return profilePictureUrl;
+            } else if (type === "cover") {
+                /* generate image name */
+                const coverPictureImageName = `cover/${userID}-s200x800.jpg`;
+                /* collect the buffer */
+                const coverPictureBufferString = croppedImagesArray[0]?.buffer;
+                /* upload to s3 */
+                const coverPictureUrl = await uploadToS3(coverPictureBufferString, coverPictureImageName);
+                /* update the link to the database */
+                await this.profileRepository.updatePicture(userID, coverPictureUrl, type);
+
+                return coverPictureUrl;
+            } else {
+                throw createHttpError(400, "Invalid type provided. Must be 'profile' or 'cover'.");
+            }
+        } catch (error) {
+            throw createHttpError(500, "Unable to update");
         }
     }
 }

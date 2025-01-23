@@ -97,6 +97,32 @@ class ProfileController{
             next(error);
         }
     }
+
+    async uploadPicture(req: Request, res: Response, next: NextFunction){
+        try {
+            const userID = req?.user?.aud!
+            const file = req?.file;
+            const type = req?.params?.type;
+            const profilePicSizes   = [{ width: 200, height: 200}];
+            const coverPicSizes     = [{width: 800, height: 200}];
+            if(!file){
+                throw createHttpError(400, "Image not found");
+            } 
+            if(type === "profile"){
+                const profilePictureUrl = await this.profileService.uploadPicture(file?.buffer, profilePicSizes, type, userID)
+                return res.status(201).json({success: true, message: `${type} picture uploaded`, data: { url: profilePictureUrl} });
+            }else if(type === "cover"){
+                const coverPictureUrl = await this.profileService.uploadPicture(file?.buffer, coverPicSizes, type, userID)
+                return res.status(201).json({success: true, message: `${type} picture uploaded`, data: { url: coverPictureUrl} });
+            }else{
+                throw createHttpError.BadRequest();
+            }
+        } catch (error) {
+            console.log("error recieved ::: ",error);
+            next(error);
+        }
+    }
+
 }
 
 export default ProfileController

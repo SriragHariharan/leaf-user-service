@@ -163,6 +163,33 @@ class ProfileRepository implements IUsernameRepository, IProfileRepository{
             throw new Error("Unable to fetch user bucket list.");
         }
     }
+
+    /* upload profile or cover picture */
+    async updatePicture(userID: string, picture: string, type: string): Promise<boolean> {
+        try {
+            const updateData = type === 'profile' 
+                ? { profilePicture: picture } 
+                : type === 'cover' 
+                ? { coverPicture: picture } 
+                : null;
+
+            if (!updateData) {
+                throw new Error('Invalid type provided. Must be "profile" or "cover".');
+            }
+
+            // Update the profile in the database
+            const updatedProfile = await prisma.profile.update({
+                where: { userID },
+                data: updateData,
+            });
+
+            // Check if the update was successful
+            return updatedProfile ? true : false;
+        } catch (error) {
+            console.error('Error updating picture:', error);
+            return false;
+        }
+    }
 }
 
 export default ProfileRepository;
