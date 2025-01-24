@@ -56,7 +56,14 @@ class ProfileService{
     }
 
     /* add travel history */
-    async addTravelHistory(location: string, year: string, places:Array<string>, userID: string): Promise<{location: string, year: number|string, places:Array<string>}> {   
+    async addTravelHistory(location: string, year: string, places:Array<string>, userID: string)
+        : Promise<{
+            id: number;
+            userID: string;
+            destination: string;
+            yearVisited: string;
+            Places: { id: number; travelHistoryID: number; placeName: string }[];
+        }> {   
         try {
             return await this.profileRepository.addTravelHistory(location, year, places, userID);
         } catch (error) {

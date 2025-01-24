@@ -65,11 +65,11 @@ class ProfileController{
     async addTravelHistory(req: Request, res: Response, next: NextFunction){
         try {
             const userID = req.user?.aud!;
-            const { location, year, places } = req.body;
-            if(!location || !year || !places || places.length===0){
+            const { destination, year, places } = req.body;
+            if(!destination || !year || !places || places.length===0){
                 throw createHttpError(400, "All fields are required.");
             }
-            const response = await this.profileService.addTravelHistory(location, year, places, userID)
+            const response = await this.profileService.addTravelHistory(destination, year, places, userID)
             return res.status(201).json({ success: true, message: "Travel history updated", data: { ...response }})
         } catch (error) {
             next(error);
@@ -81,8 +81,8 @@ class ProfileController{
         try {
             const id = req.params.id;
             const userID = id === "self" ? req.user?.aud! : id;
-            const response = await this.profileService.getTravelHistory(userID);
-            return res.status(200).json({ success: true, message: "Travel history fetched", data: { ...response }});
+            const travelList = await this.profileService.getTravelHistory(userID);
+            return res.status(200).json({ success: true, message: "Travel history fetched", data: { travelList }});
         } catch (error) {
             next(error);
         }
@@ -109,7 +109,7 @@ class ProfileController{
             const id = req.params.id;
             const userID = id === "self" ? req.user?.aud! : id;
             const response = await this.profileService.getBucketListDestination(userID);
-            return res.status(200).json({ success: true, message: "Travel history fetched", data: { ...response }});
+            return res.status(200).json({ success: true, message: "Travel history fetched", data: { response }});
         } catch (error) {
             next(error);
         }

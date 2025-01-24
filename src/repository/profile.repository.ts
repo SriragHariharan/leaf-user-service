@@ -96,7 +96,7 @@ class ProfileRepository implements IUsernameRepository, IProfileRepository{
 
     /* add travel history */
     async addTravelHistory(location: string, year: string, places: Array<string>, userID: string)
-        : Promise<{ location: string; year: string; places: Array<string>, id: number }> 
+        : Promise<{ id: number; userID: string; destination: string; yearVisited: string; Places: { id: number; travelHistoryID: number; placeName: string }[]; }>
         {
             try {
                 const travelHistoryResponse = await prisma.travelHistory.create({
@@ -117,13 +117,17 @@ class ProfileRepository implements IUsernameRepository, IProfileRepository{
 
                 // Insert places
                 await prisma.places.createMany({ data: placesData });
+                const travelHistory = await prisma.travelHistory.findUnique({
+                    where: { id: travelHistoryID },
+                    include: {
+                        Places: true,
+                    },
+                });
+                if (!travelHistory) {
+                    throw createHttpError(500, "Something went wrong");
+                }
 
-                return {
-                    id: travelHistoryID,
-                    location: travelHistoryResponse.destination,
-                    year: travelHistoryResponse.yearVisited,
-                    places: places
-                };
+                return travelHistory;
             } catch (error) {
                 console.error("Error adding travel history:", error);
                 throw createHttpError(500, "Unable to add travel history.");
