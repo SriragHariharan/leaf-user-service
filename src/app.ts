@@ -4,8 +4,15 @@ import authRouter from './routes/auth.routes';
 import createHttpError from 'http-errors';
 import bodyParser from 'body-parser';
 import profileRouter from './routes/profile.routes';
+import logger from './helpers/logger';
 
 const app = express();
+
+/* logger logs handling */
+app.use((req, res, next) => {
+  logger.info(`Incoming request`, { method: req.method, url: req.url });
+  next();
+});
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
