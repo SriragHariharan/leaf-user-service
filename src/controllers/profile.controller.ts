@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
-import ProfileService from '../services/profile.service';
+import { IProfileService } from '../interfaces/IProfileService';
 import createHttpError from 'http-errors';
-import logger from '../helpers/logger'; // Assuming you have a logger instance
+import logger from '../helpers/logger';
 
 class ProfileController {
-    private profileService: ProfileService;
+    private profileService: IProfileService;
 
-    constructor(profileService: ProfileService) {
+    // Inject IProfileService into the controller
+    constructor(profileService: IProfileService) {
         this.profileService = profileService;
     }
 

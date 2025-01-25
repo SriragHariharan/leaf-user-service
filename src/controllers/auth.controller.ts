@@ -3,12 +3,13 @@ import AuthService from '../services/auth.service';
 import createHttpError from 'http-errors';
 import { Auth } from '../interfaces/auth.interface';
 import logger from '../helpers/logger';
+import { IAuthService } from '../interfaces/IAuthService';
 
 class AuthController {
-    private authService: AuthService;
+    private authService: IAuthService;
 
     // Inject AuthService into the controller
-    constructor(authService: AuthService) {
+    constructor(authService: IAuthService) {
         this.authService = authService;
     }
 

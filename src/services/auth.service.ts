@@ -1,3 +1,4 @@
+import { IAuthService } from "../interfaces/IAuthService";
 import { Auth } from "../interfaces/auth.interface";
 import { IAuthRepository } from "../interfaces/IAuthRepository";
 import bcrypt from "bcrypt";
@@ -7,7 +8,7 @@ import createHttpError from "http-errors";
 import { signAccessToken, signRefreshToken } from "../helpers/jwt.helper";
 import logger from "../helpers/logger";
 
-class AuthService {
+class AuthService implements IAuthService {
     private authRepository: IAuthRepository;
     private usernameRepository: IUsernameRepository;
 

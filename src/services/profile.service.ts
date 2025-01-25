@@ -1,11 +1,12 @@
-import createHttpError from "http-errors";
+import { IProfileService } from "../interfaces/IProfileService";
 import { IProfileRepository } from "../interfaces/IProfileRepository";
 import { Size } from "../interfaces/size.interface";
 import resizeImage from "../helpers/sharp.helper";
 import uploadToS3 from "../helpers/s3Bucket.helper";
-import logger from "../helpers/logger"; // Assuming you have a logger instance
+import logger from "../helpers/logger";
+import createHttpError from "http-errors";
 
-class ProfileService {
+class ProfileService implements IProfileService {
     private profileRepository: IProfileRepository;
 
     constructor(profileRepository: IProfileRepository) {
