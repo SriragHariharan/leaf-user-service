@@ -7,8 +7,7 @@ import createHttpError from "http-errors";
 import { signAccessToken, signRefreshToken } from "../helpers/jwt.helper";
 import logger from "../helpers/logger";
 
-class AuthService{
-
+class AuthService {
     private authRepository: IAuthRepository;
     private usernameRepository: IUsernameRepository;
 
@@ -17,249 +16,254 @@ class AuthService{
         this.usernameRepository = usernameRepository;
     }
 
-    /*create user account*/
+    /* Create new user account */
     async createNewUser(authDetails: Auth): Promise<string> {
-        logger.info("createNewUser service called with email: %s", authDetails.email);
+        logger.info(`Creating new user. Email: ${authDetails.email}`);
         try {
-            // Check if user already exists in the database
-            const userExists = await this.authRepository.findByEmail(authDetails?.email!);
+            // Check if user already exists
+            const userExists = await this.authRepository.findByEmail(authDetails.email!);
             if (userExists) {
-                logger.warn("User already exists in the database: %s", authDetails.email);
-                throw createHttpError(409, "User already exists"); // HTTP 409 Conflict
+                logger.warn(`User already exists. Email: ${authDetails.email}`);
+                throw createHttpError(409, "User already exists");
             }
 
-            // Hash the password before saving
-            const hashedPassword = await bcrypt.hash(authDetails?.password!, 10);
-            logger.info("Password hashed for the user: %s", authDetails?.email);
+            // Hash the password
+            const hashedPassword = await bcrypt.hash(authDetails.password!, 10);
+            logger.info(`Password hashed for user. Email: ${authDetails.email}`);
 
             // Save the user with the hashed password
             authDetails.password = hashedPassword;
             const user = await this.authRepository.create(authDetails);
-            logger.info("User created: %s", user?.id)
+            logger.info(`User created successfully. ID: ${user.id}, Email: ${user.email}`);
 
             // Update username in the profile database
-            await this.usernameRepository.updateUsername(user?.id!, authDetails?.username!);
-            logger.info("Username updated in the profile database: %s", user?.id)
+            await this.usernameRepository.updateUsername(user.id!, authDetails.username!);
+            logger.info(`Username updated in profile database. UserID: ${user.id}`);
 
-            // Generate OTP and store it in the OTP table
-            await this.generateAndStoreOtp(user?.id!);
-            logger.info("Unique OTP generated for user: %s", user?.id);
+            // Generate OTP and store it
+            await this.generateAndStoreOtp(user.id!);
+            logger.info(`OTP generated and stored for user. UserID: ${user.id}`);
 
-            // Send OTP to notification service (e.g., via email or SMS)
+            // Send OTP to notification service
             console.log("Sending OTP to the notification service");
 
-            return user?.id!;
+            return user.id!;
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
-                logger.error("Error in createNewUser: %s", error.message, { error });
+                logger.error(`Error creating new user. Email: ${authDetails.email}`, { error });
                 throw error;
             } else {
-                logger.error("Unexpected error in createNewUser", { error });
+                logger.error(`Unexpected error creating new user. Email: ${authDetails.email}`, { error });
                 throw createHttpError(500, "An unexpected error occurred");
             }
         }
     }
 
-    /* login existing user */
-    async loginUser(authDetails: Auth): Promise<{accessToken: string, refreshToken: string, username: string, profilePicture: string|null}> {
+    /* Login existing user */
+    async loginUser(authDetails: Auth): Promise<{ accessToken: string; refreshToken: string; username: string; profilePicture: string | null }> {
+        logger.info(`Login request received. Email: ${authDetails.email}`);
         try {
-            logger.info("Call recieved in loginUser service", { email: authDetails.email })
-            //check if user exists or not
-            let userDetails = await this.authRepository.findByEmail(authDetails?.email!);
-            
-            //if user exists then validate password
-            if(!userDetails){
-                logger.error("User with email not found in database: %s", { email: authDetails.email });
+            // Check if user exists
+            const userDetails = await this.authRepository.findByEmail(authDetails.email!);
+            if (!userDetails) {
+                logger.warn(`User not found. Email: ${authDetails.email}`);
                 throw createHttpError(401, "Invalid user credentials");
             }
-            let passwordHashResult = await bcrypt.compare(authDetails?.password!, userDetails?.password!);
-            if(!passwordHashResult){
-                logger.error("User entered incorrect password: %s", { email: authDetails.email });
-                throw createHttpError(401, "Invalid user credentials");
-            }
-            //create a jwt and return it
-            const accessToken = signAccessToken(userDetails?.id!);
-            const refreshToken = signRefreshToken(userDetails?.id!);
-            console.log(accessToken, refreshToken, " ::: axt rft")
-            logger.info("Generated access and refresh token for the user: %s", { email: authDetails.email });
 
-            const basicUserProfile = await this.authRepository.getBasicProfile(userDetails?.id!)
-            logger.info("Fetched the basic profile details of the user: %s", { email: authDetails.email })
-            /* get username and dp and attach with it and send in future */
-            return { accessToken, refreshToken, username: basicUserProfile?.username, profilePicture: basicUserProfile?.profilePicture };
-            
+            // Validate password
+            const passwordHashResult = await bcrypt.compare(authDetails.password!, userDetails.password!);
+            if (!passwordHashResult) {
+                logger.warn(`Incorrect password entered. Email: ${authDetails.email}`);
+                throw createHttpError(401, "Invalid user credentials");
+            }
+
+            // Generate tokens
+            const accessToken = signAccessToken(userDetails.id!);
+            const refreshToken = signRefreshToken(userDetails.id!);
+            console.log(accessToken, refreshToken, " ::: accessToken, refreshToken");
+            logger.info(`Tokens generated for user. Email: ${authDetails.email}`);
+
+            // Fetch basic profile details
+            const basicUserProfile = await this.authRepository.getBasicProfile(userDetails.id!);
+            logger.info(`Basic profile fetched for user. Email: ${authDetails.email}`);
+
+            return { accessToken, refreshToken, username: basicUserProfile.username, profilePicture: basicUserProfile.profilePicture };
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
-                logger.error("Error in loginUser service: %s", error.message, { error });
+                logger.error(`Error logging in user. Email: ${authDetails.email}`, { error });
                 throw error;
             } else {
-                logger.error("Unexpected error in loginUser service", { error });
+                logger.error(`Unexpected error logging in user. Email: ${authDetails.email}`, { error });
                 throw createHttpError(500, "An unexpected error occurred");
             }
         }
     }
 
-    /* Confirm whether user is found in db or not */
-    async confirmUser(email: string): Promise<boolean>{
+    /* Confirm user exists */
+    async confirmUser(email: string): Promise<boolean> {
+        logger.info(`Confirm user request received. Email: ${email}`);
         try {
-            logger.info("Call received in confirmUser service: %s", email);
-            let userDetails = await this.authRepository.findByEmail(email);
-            console.log(userDetails)
-            if(!userDetails){
-                logger.warn("User with email not found in database: %s", { email });
+            const userDetails = await this.authRepository.findByEmail(email);
+            console.log(userDetails);
+            if (!userDetails) {
+                logger.warn(`User not found. Email: ${email}`);
                 throw createHttpError(401, "Invalid email credentials");
             }
 
             // Generate reset link
-            logger.info("Generating password reset link: %s", { email });
-            const accessToken = signAccessToken(userDetails?.id!);
+            const accessToken = signAccessToken(userDetails.id!);
             const resetLink = "http://localhost:8080/reset-password?token=" + accessToken;
-            console.log("reset link ::: ", resetLink);
-            logger.info("Password reset link generated for the user: %s", { email });
+            console.log("Reset link ::: ", resetLink);
+            logger.info(`Reset link generated for user. Email: ${email}`);
 
-            //send to notification service
-            logger.info("Reset link sent the notification service: %s", { email });
+            // Send to notification service
+            logger.info(`Reset link sent to notification service. Email: ${email}`);
 
             return true;
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
-                logger.error("Error in confirmUser Service: %s", error.message, { error });
+                logger.error(`Error confirming user. Email: ${email}`, { error });
                 throw error;
             } else {
-                logger.error("Unexpected error in confirmUser Service: %s", { error });
+                logger.error(`Unexpected error confirming user. Email: ${email}`, { error });
                 throw createHttpError(500, "An unexpected error occurred");
             }
         }
     }
 
-    /* Validate the otp after confirm email page */
-    async validateOTP(otp: string, userID: string): Promise<{accessToken: string, refreshToken: string, username: string, profilePicture: string|null}>{
+    /* Validate OTP */
+    async validateOTP(otp: string, userID: string): Promise<{ accessToken: string; refreshToken: string; username: string; profilePicture: string | null }> {
+        logger.info(`Validate OTP request received. UserID: ${userID}`);
         try {
-            logger.info("Call received in the  validateOTP service for user %s" + userID);
-            let otpDetails = await this.authRepository.getOTP(userID);
-
-            if(!otpDetails?.otp || !otpDetails?.expiresAt){
-                logger.warn("OTP not found in the database for user %s", userID);
+            const otpDetails = await this.authRepository.getOTP(userID);
+            if (!otpDetails?.otp || !otpDetails?.expiresAt) {
+                logger.warn(`OTP not found. UserID: ${userID}`);
                 throw createHttpError(400, "Invalid OTP");
             }
-            //check for otp expiry
+
+            // Check for OTP expiry
             const currentTime = new Date();
             const otpExpiryTime = new Date(otpDetails.expiresAt);
             if (otpExpiryTime < currentTime) {
-                logger.warn("OTP expired for the user with userID: %s", userID);
+                logger.warn(`OTP expired. UserID: ${userID}`);
                 throw createHttpError(400, "OTP has expired");
-            } else {
-                if(otp != otpDetails?.otp){
-                    logger.warn("Wrong OTP enterd by the user with userID: %s", userID);
-                    throw createHttpError(400, "Invalid OTP");
-                }else{
-                    logger.info("OTP valid for the user with userID: %s", userID);
-                    const basicUserProfile = await this.authRepository.getBasicProfile(userID)
-                    logger.info("Basic profile fetched for the user with userID: %s", userID);
-                    let accessToken = signAccessToken(otpDetails?.userID!);
-                    let refreshToken = signRefreshToken(otpDetails?.userID!);
-                    logger.info("Access and refresh token fetched for the user with userID: %s", userID)
-                    return {accessToken, refreshToken, username: basicUserProfile?.username, profilePicture: basicUserProfile?.profilePicture};
-                }
             }
+
+            if (otp !== otpDetails.otp) {
+                logger.warn(`Incorrect OTP entered. UserID: ${userID}`);
+                throw createHttpError(400, "Invalid OTP");
+            }
+
+            logger.info(`OTP validated successfully. UserID: ${userID}`);
+
+            // Fetch basic profile details
+            const basicUserProfile = await this.authRepository.getBasicProfile(userID);
+            logger.info(`Basic profile fetched for user. UserID: ${userID}`);
+
+            // Generate tokens
+            const accessToken = signAccessToken(otpDetails.userID);
+            const refreshToken = signRefreshToken(otpDetails.userID);
+            logger.info(`Tokens generated for user. UserID: ${userID}`);
+
+            return { accessToken, refreshToken, username: basicUserProfile.username, profilePicture: basicUserProfile.profilePicture };
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
-                logger.error("Error in validateOTP service: %s", error.message, { error });
+                logger.error(`Error validating OTP. UserID: ${userID}`, { error });
                 throw error;
             } else {
-                logger.error("Unexpected error in validateOTP service: %s", { error });
+                logger.error(`Unexpected error validating OTP. UserID: ${userID}`, { error });
                 throw createHttpError(500, "An unexpected error occurred");
             }
         }
     }
 
-    /* resend otp on timer expiry */
+    /* Resend OTP */
     async resendOtp(userID: string): Promise<boolean> {
-        logger.info("Call received in resendOTP service for userID: %s", userID);
+        logger.info(`Resend OTP request received. UserID: ${userID}`);
         await this.generateAndStoreOtp(userID);
-        // ❌collect the regenerated otp and send to notification service❌
-        logger.info("OTP resent to theu userID's email: %s", userID);
+        logger.info(`OTP resent to user. UserID: ${userID}`);
         return true;
     }
 
-    /* reset password */
-    async resetPassword(userID: string, password: string): Promise<boolean>{
+    /* Reset password */
+    async resetPassword(userID: string, password: string): Promise<boolean> {
+        logger.info(`Reset password request received. UserID: ${userID}`);
         try {
-            logger.info("Call received in the userController to reset password for user: %s" + userID);
-            logger.info("Hashing the pasword for user: %s" + userID);
-            let hashedPassword = await bcrypt.hash(password, 10)
-            logger.info("Password hashing successfull for user: %s" + userID);
+            const hashedPassword = await bcrypt.hash(password, 10);
+            logger.info(`Password hashed for user. UserID: ${userID}`);
             await this.authRepository.resetPassword(userID, hashedPassword);
+            logger.info(`Password reset successfully. UserID: ${userID}`);
             return true;
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
-                logger.error("Error in resetPassword service: %s", error.message, { error });
+                logger.error(`Error resetting password. UserID: ${userID}`, { error });
                 throw error;
             } else {
-                logger.error("Unexpected error in resetPassword service: %s", { error });
+                logger.error(`Unexpected error resetting password. UserID: ${userID}`, { error });
                 throw createHttpError(500, "An unexpected error occurred");
             }
         }
     }
 
-    /* Generate otp and store in OTP table */
+    /* Generate and store OTP */
     async generateAndStoreOtp(userID: string): Promise<boolean> {
+        logger.info(`Generating OTP for user. UserID: ${userID}`);
         try {
-            logger.info("generating otp for user " + userID);
             const otp = generateOtp();
-            logger.info("OTP generated for user " + userID);
+            logger.info(`OTP generated for user. UserID: ${userID}`);
             console.log("OTP generated :::", otp);
+
             const expiresAt = new Date();
             expiresAt.setMinutes(expiresAt.getMinutes() + Number(process.env.OTP_EXPIRATION_MINUTES));
             await this.authRepository.saveOTP({ userID, otp, expiresAt });
+            logger.info(`OTP stored for user. UserID: ${userID}`);
+
             return true;
         } catch (error) {
-            logger.error("Error generating and storing otp for userID: %s Error %s", userID,  error);
+            logger.error(`Error generating and storing OTP. UserID: ${userID}`, { error });
             throw createHttpError(500, "An unexpected error occurred");
         }
     }
 
-    /* signup user via oauth: Google, fb, twitter etc... */
-    async ouathSignup(email: string, picture: string, name: string, provider: string): Promise<{accessToken: string, refreshToken: string, username: string, profilePicture: string | null}> {
+    /* OAuth signup */
+    async ouathSignup(email: string, picture: string, name: string, provider: string): Promise<{ accessToken: string; refreshToken: string; username: string; profilePicture: string | null }> {
+        logger.info(`OAuth signup request received. Email: ${email}, Provider: ${provider}`);
         try {
-            logger.info("Call recieved in OAuthSignup service to signup user %s", email);
-            let userDetails = await this.authRepository.findByEmail(email!);
-            
-            //if not user, add a new one
-            if(!userDetails){
-                logger.info("Signing up new user via oAuth: email %s provider %s ", email, provider);
-                let resp = await this.authRepository.saveOauthUser(email, provider, name, picture);
-                
-                logger.info("Generating access and refresh token for the new user: ", email );
-                const accessToken = signAccessToken(resp?.id!)
-                const refreshToken = signRefreshToken(resp?.id!)
-                logger.info("Generated access and refresh token for the new user: ", email );
-                //attach username and image from profile service and send
-                return { accessToken, refreshToken, username: name, profilePicture: picture};
-            }
-            else{
-                if(userDetails?.provider === provider){
-                    logger.info("Signup existing user signup via Oauth with email: ",email);
-                    const accessToken = signAccessToken(userDetails?.id!)
-                    const refreshToken = signRefreshToken(userDetails?.id!)
-                    logger.info("Generated access token and refresh token for the user: ",email);
-                    const basicUserProfile = await this.authRepository.getBasicProfile(userDetails?.id!);
-                    return { accessToken, refreshToken, username: basicUserProfile?.username, profilePicture: basicUserProfile?.profilePicture };
-                }else{
-                    logger.warn("User used some other authentication provider: ", email);
-                    throw new Error("Try other signin methods")
+            let userDetails = await this.authRepository.findByEmail(email);
+
+            if (!userDetails) {
+                logger.info(`Signing up new user via OAuth. Email: ${email}, Provider: ${provider}`);
+                const resp = await this.authRepository.saveOauthUser(email, provider, name, picture);
+
+                const accessToken = signAccessToken(resp.id!);
+                const refreshToken = signRefreshToken(resp.id!);
+                logger.info(`Tokens generated for new OAuth user. Email: ${email}`);
+
+                return { accessToken, refreshToken, username: name, profilePicture: picture };
+            } else {
+                if (userDetails.provider === provider) {
+                    logger.info(`Existing user signing in via OAuth. Email: ${email}`);
+                    const accessToken = signAccessToken(userDetails.id!);
+                    const refreshToken = signRefreshToken(userDetails.id!);
+                    logger.info(`Tokens generated for existing OAuth user. Email: ${email}`);
+
+                    const basicUserProfile = await this.authRepository.getBasicProfile(userDetails.id!);
+                    return { accessToken, refreshToken, username: basicUserProfile.username, profilePicture: basicUserProfile.profilePicture };
+                } else {
+                    logger.warn(`User used a different authentication provider. Email: ${email}`);
+                    throw new Error("Try other signin methods");
                 }
             }
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
-                logger.error("Error in oAuthSignup service: %s", error.message, { error });
+                logger.error(`Error in OAuth signup. Email: ${email}`, { error });
                 throw error;
             } else {
-                logger.error("Unexpected error in oAuthSignup service: %s", { error });
+                logger.error(`Unexpected error in OAuth signup. Email: ${email}`, { error });
                 throw createHttpError(500, "An unexpected error occurred");
             }
         }
     }
-};
+}
 
 export default AuthService;

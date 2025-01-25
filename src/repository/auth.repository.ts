@@ -5,147 +5,153 @@ import createHttpError from "http-errors";
 import logger from "../helpers/logger";
 
 class AuthRepository implements IAuthRepository {
-    /* create user */
+    /* Create user */
     async create(authDetails: Auth): Promise<Auth> {
         try {
-            logger.info("AuthRepository: Creating a new user at database: %s",authDetails?.email )
+            logger.info(`Creating a new user in the database. Email: ${authDetails.email}`);
             const response = await prisma.user.create({
                 data: {
-                    email: authDetails?.email!,
-                    password: authDetails?.password!,
+                    email: authDetails.email!,
+                    password: authDetails.password,
                 },
             });
-            console.log("db insertion resp ::: ", response);
-            logger.info("New ser added to the database: %s",{id: response?.id, email: response?.email})
-            return { id: response?.id, email: response?.email };
+
+            logger.info(`User created successfully. ID: ${response.id}, Email: ${response.email}`);
+            return { id: response.id, email: response.email };
         } catch (error) {
-            logger.error("Error creating new user at database: %s",error);
+            logger.error(`Error creating user in the database. Email: ${authDetails.email}`, { error });
             throw new Error("Something went wrong. Please try again.");
         }
     }
 
+    /* Find user by email */
     async findByEmail(email: string): Promise<Auth | null> {
         try {
-            logger.info("Searching for user by email in database: %s", email);
+            logger.info(`Searching for user by email. Email: ${email}`);
             const user = await prisma.user.findUnique({
                 where: { email },
             });
-            logger.info("Found user by email in database: %s", email);
+
+            if (user) {
+                logger.info(`User found by email. Email: ${email}`);
+            } else {
+                logger.warn(`User not found by email. Email: ${email}`);
+            }
+
             return user;
         } catch (error) {
-            logger.error("Error finding user by email in database: %s, Error: %s", email, error);
+            logger.error(`Error finding user by email. Email: ${email}`, { error });
             throw new Error("Something went wrong. Please try again.");
         }
     }
 
-    async saveOTP({ userID, otp, expiresAt}: { userID: string; otp: number; expiresAt: Date; }): Promise<number> 
-    {
+    /* Save OTP */
+    async saveOTP({ userID, otp, expiresAt }: { userID: string; otp: number; expiresAt: Date }): Promise<number> {
         try {
-            logger.info("Saving the generated otp to database for user: %s", userID);
+            logger.info(`Saving OTP for user. UserID: ${userID}`);
             const otpString = otp.toString();
+
             await prisma.oTP.upsert({
-                where: { userID }, // Lookup by userID
-                update: {
-                    otp: otpString,
-                    expiresAt,
-                },
-                create: {
-                    userID,
-                    otp: otpString,
-                    expiresAt,
-                },
+                where: { userID },
+                update: { otp: otpString, expiresAt },
+                create: { userID, otp: otpString, expiresAt },
             });
-            logger.info("Saved the generated otp to database for user: %s", userID);
+
+            logger.info(`OTP saved successfully for user. UserID: ${userID}`);
             return otp;
         } catch (error) {
-            logger.error("Error saving OTP for the userID: %s", userID,  error);
+            logger.error(`Error saving OTP for user. UserID: ${userID}`, { error });
             throw new Error("Something went wrong. Please try again.");
         }
     }
 
-    async getOTP(userID: string): Promise<{otp: string, expiresAt: Date, userID: string}> {
+    /* Get OTP */
+    async getOTP(userID: string): Promise<{ otp: string; expiresAt: Date; userID: string }> {
         try {
-            logger.info("finding the otp for user in database" + userID);
+            logger.info(`Fetching OTP for user. UserID: ${userID}`);
             const result = await prisma.oTP.findUnique({
-                where: { userID }
-            })
-            return {otp: result?.otp!, expiresAt: result?.expiresAt!, userID: userID};
+                where: { userID },
+            });
+
+            if (!result) {
+                logger.warn(`OTP not found for user. UserID: ${userID}`);
+                throw createHttpError(404, "OTP not found");
+            }
+
+            logger.info(`OTP fetched successfully for user. UserID: ${userID}`);
+            return { otp: result.otp, expiresAt: result.expiresAt, userID };
         } catch (error) {
-            logger.error("Error finding the otp for user: %s", userID, error)
+            logger.error(`Error fetching OTP for user. UserID: ${userID}`, { error });
             throw new Error("Something went wrong. Please try again.");
         }
     }
 
+    /* Reset password */
     async resetPassword(userID: string, password: string): Promise<boolean> {
-        logger.info("Saving new password for user: %s" + userID);
         try {
+            logger.info(`Resetting password for user. UserID: ${userID}`);
             await prisma.user.update({
                 where: { id: userID },
-                data: {
-                    password
-                },
+                data: { password },
             });
-            logger.info("Saved new password for user: %s" + userID);
+
+            logger.info(`Password reset successfully for user. UserID: ${userID}`);
             return true;
         } catch (error) {
-            logger.error("Unable to save new password for user: %s", userID, error);
-            throw new Error("Something went wrong. Please try again.");   
-        }
-    }
-
-    async saveOauthUser(email: string, provider: string, name: string, picture: string): Promise<Auth> {
-         try {
-            logger.info("Saving user authenticated via oauth platform with email: %s", email, " provider: %s", provider);
-            const response = await prisma.user.create({
-                data: {
-                    email: email!,
-                    provider: provider!
-                },
-            });
-            logger.info("Saved user authenticated via oauth platform with email: %s", email, " provider: %s", provider);
-
-            //update profile table with username and image
-            logger.info("Saving username and profile image for the user with email: %s", email, " provider: %s", provider);
-            await prisma.profile.create({
-                data: {
-                    userID: response?.id!,
-                    username: name,
-                    profilePicture: picture
-                },
-            });
-            logger.info("Saved username and profile image for the user with email: %s", email, " provider: %s", provider);
-
-            return { id: response?.id, email: response?.email, provider, username: name, profilePicture: picture };
-        } catch (error) {
-            logger.error("Error saving oAuth user credentilas: %s", email,  error)
+            logger.error(`Error resetting password for user. UserID: ${userID}`, { error });
             throw new Error("Something went wrong. Please try again.");
         }
     }
 
-    /* get basic profile details such as username and profile picture */
-    async getBasicProfile(userID: string) {
-    try {
-        logger.info("Getting basic profile information for the userID: %s", userID);
-        // Fetch the user's profile with only the specified fields
-        const userProfile = await prisma.profile.findUnique({
-            where: { userID },
-            select: {
-                username: true,
-                profilePicture: true,
-            },
-        });
+    /* Save OAuth user */
+    async saveOauthUser(email: string, provider: string, name: string, picture: string): Promise<Auth> {
+        try {
+            logger.info(`Saving OAuth user. Email: ${email}, Provider: ${provider}`);
+            const response = await prisma.user.create({
+                data: { email, provider },
+            });
 
-        if (!userProfile) {
-            logger.warn("Profile details not found in the database for the userID", userID);
-            throw createHttpError(404, "Profile not found");
+            logger.info(`OAuth user saved successfully. ID: ${response.id}, Email: ${response.email}`);
+
+            // Update profile table with username and image
+            logger.info(`Creating profile for OAuth user. UserID: ${response.id}`);
+            await prisma.profile.create({
+                data: {
+                    userID: response.id,
+                    username: name,
+                    profilePicture: picture,
+                },
+            });
+
+            logger.info(`Profile created successfully for OAuth user. UserID: ${response.id}`);
+            return { id: response.id, email: response.email, provider, username: name, profilePicture: picture };
+        } catch (error) {
+            logger.error(`Error saving OAuth user. Email: ${email}`, { error });
+            throw new Error("Something went wrong. Please try again.");
         }
-        logger.info("User profile fetched from database for the userID: %s", userID);
-        return userProfile;
-    } catch (error) {
-        logger.error("Error fuctcing basic profile of the userID: %s", userID, error);
-        throw new Error("Something went wrong. Please try again.");
     }
-}
+
+    /* Get basic profile details */
+    async getBasicProfile(userID: string) {
+        try {
+            logger.info(`Fetching basic profile details for user. UserID: ${userID}`);
+            const userProfile = await prisma.profile.findUnique({
+                where: { userID },
+                select: { username: true, profilePicture: true },
+            });
+
+            if (!userProfile) {
+                logger.warn(`Profile not found for user. UserID: ${userID}`);
+                throw createHttpError(404, "Profile not found");
+            }
+
+            logger.info(`Basic profile details fetched successfully for user. UserID: ${userID}`);
+            return userProfile;
+        } catch (error) {
+            logger.error(`Error fetching basic profile details for user. UserID: ${userID}`, { error });
+            throw new Error("Something went wrong. Please try again.");
+        }
+    }
 }
 
 export default AuthRepository;
