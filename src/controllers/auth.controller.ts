@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import AuthService from '../services/auth.service';
 import createHttpError from 'http-errors';
 import { Auth } from '../interfaces/auth.interface';
 import logger from '../helpers/logger';
@@ -271,6 +270,29 @@ class AuthController {
                 });
             } else {
                 logger.error(`Unexpected error in oAuthSignup controller. Email: ${req.body.email}`, {
+                    error: JSON.stringify(error),
+                    endpoint: req.path,
+                    method: req.method,
+                });
+            }
+            next(error);
+        }
+    }
+
+    async generateNewAccessAndRefreshToken(req: Request, res: Response, next: NextFunction){
+        try {
+            let tokens = await this.authService.generateNewTokens(req.user?.aud!);
+            return res.status(200).json({success: true, message: null, data: {...tokens}});
+        } catch (error) {
+            if (error instanceof Error) {
+                logger.error(`Error in generateNewAccessAndRefreshToken controller. Email: ${req.body.email}`, {
+                    message: error.message,
+                    stack: error.stack,
+                    endpoint: req.path,
+                    method: req.method,
+                });
+            } else {
+                logger.error(`Unexpected error in generateNewAccessAndRefreshToken controller. Email: ${req.body.email}`, {
                     error: JSON.stringify(error),
                     endpoint: req.path,
                     method: req.method,

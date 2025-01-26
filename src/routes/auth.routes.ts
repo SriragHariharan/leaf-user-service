@@ -3,7 +3,7 @@ import AuthController from "../controllers/auth.controller";
 import AuthService from "../services/auth.service";
 import AuthRepository from "../repository/auth.repository";
 import UsernameRepository from "../repository/profile.repository";
-import { validateAccessToken } from "../helpers/jwt.helper";
+import { validateAccessToken, validateRefreshToken } from "../helpers/jwt.helper";
 
 const authRouter = Router();
 
@@ -46,4 +46,7 @@ authRouter.post("/oauth-signup", (req: Request, res: Response, next: NextFunctio
     authController.oAuthSignup(req, res, next)
 });
 
+authRouter.post("/refresh-token", validateRefreshToken, (req: Request, res: Response, next: NextFunction) => {
+    authController.generateNewAccessAndRefreshToken(req, res, next)
+});
 export default authRouter;

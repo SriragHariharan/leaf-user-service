@@ -15,7 +15,7 @@ export function signAccessToken(userID: string): string {
     const payload = {}
     const secret = process.env.ACCESS_TOKEN_SECRET!;
     const options = {
-        expiresIn: '10m',
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRATION,
         issuer: 'leaf.com',
         audience: userID,
     };
@@ -26,7 +26,7 @@ export function signRefreshToken(userID: string): string {
     const payload = {}
     const secret = process.env.REFRESH_TOKEN_SECRET!;
     const options = {
-        expiresIn: '7D',
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRATION,
         issuer: 'leaf.com',
         audience: userID,
     };
@@ -51,6 +51,22 @@ export function validateAccessToken(req: Request, _res: Response, next: NextFunc
         next(); 
     } catch (error) {
         console.log("axt validation error ::: ", error)
+        return next(createHttpError.Unauthorized("Unauthorized request" + error));
+    }
+}
+
+export function validateRefreshToken(req: Request, _res: Response, next: NextFunction): void {
+    try {
+        let refreshToken = req.body.refreshToken;
+        if (!refreshToken) {
+            return next(createHttpError.Unauthorized("Unauthorized request"));
+        }
+    
+        let resp = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!)
+        req.user = resp;
+        next(); 
+    } catch (error) {
+        console.log("Refresh token validation error ::: ", error)
         return next(createHttpError.Unauthorized("Unauthorized request" + error));
     }
 }

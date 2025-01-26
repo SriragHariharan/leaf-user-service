@@ -265,6 +265,24 @@ class AuthService implements IAuthService {
             }
         }
     }
+
+    async generateNewTokens(userID: string): Promise<{accessToken: string, refreshToken: string}>{
+        try {
+            logger.info(`Generating new access and refresh tokens for ${userID}`);
+            const accessToken = signAccessToken(userID);
+            const refreshToken = signRefreshToken(userID);
+            logger.info(`Generated new access and refresh tokens for ${userID}`);
+            return { accessToken, refreshToken };
+        } catch (error) {
+            if (createHttpError.isHttpError(error)) {
+                logger.error(`Error in generateNewTokens. Email: ${userID}`, { error });
+                throw error;
+            } else {
+                logger.error(`Unexpected error in generateNewTokens. Email: ${userID}`, { error });
+                throw createHttpError(500, "An unexpected error occurred");
+            }
+        }
+    }
 }
 
 export default AuthService;
