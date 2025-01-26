@@ -1,6 +1,7 @@
 import createHttpError from 'http-errors';
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
+import redisHelper from './redis.helper';
 
 //re open the Request interface and add user object to it;
 declare global {
@@ -46,7 +47,7 @@ export function validateAccessToken(req: Request, _res: Response, next: NextFunc
         if (!token) {
             return next(createHttpError.Unauthorized("Unauthorized request, token is required."));
         }
-        let resp = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!)
+        const resp = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!)
         req.user = resp;
         next(); 
     } catch (error) {
@@ -55,15 +56,20 @@ export function validateAccessToken(req: Request, _res: Response, next: NextFunc
     }
 }
 
-export function validateRefreshToken(req: Request, _res: Response, next: NextFunction): void {
+export async function validateRefreshToken(req: Request, _res: Response, next: NextFunction): Promise<void> {
     try {
-        let refreshToken = req.body.refreshToken;
+        const refreshToken = req.body?.refreshToken;
         if (!refreshToken) {
             return next(createHttpError.Unauthorized("Unauthorized request"));
         }
-    
-        let resp = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!)
+        const resp = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!)
         req.user = resp;
+        //match the refresh token from user and refresh token from redis
+        const refreshTokenFromRedis = await redisHelper.get(`RefreshToken:${req.user?.aud!}`);
+        console.log("refresh token from redis ::: " + refreshTokenFromRedis);
+        if(refreshTokenFromRedis !== refreshToken) {
+            return next(createHttpError.Unauthorized("Unauthorized request"));
+        }
         next(); 
     } catch (error) {
         console.log("Refresh token validation error ::: ", error)

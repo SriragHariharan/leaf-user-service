@@ -7,6 +7,7 @@ import { generateOtp } from "../helpers/otp.helper";
 import createHttpError from "http-errors";
 import { signAccessToken, signRefreshToken } from "../helpers/jwt.helper";
 import logger from "../helpers/logger";
+import redisHelper from "../helpers/redis.helper";
 
 class AuthService implements IAuthService {
     private authRepository: IAuthRepository;
@@ -83,6 +84,9 @@ class AuthService implements IAuthService {
             const refreshToken = signRefreshToken(userDetails.id!);
             console.log(accessToken, refreshToken, " ::: accessToken, refreshToken");
             logger.info(`Tokens generated for user. Email: ${authDetails.email}`);
+
+            await redisHelper.set(`RefreshToken:${userDetails.id!}`, refreshToken, 7 * 24 * 60 * 60); //store in redis for seven days
+            logger.info("Stored refresh token in redis cache for the user: ", userDetails.id);
 
             // Fetch basic profile details
             const basicUserProfile = await this.authRepository.getBasicProfile(userDetails.id!);
@@ -166,6 +170,9 @@ class AuthService implements IAuthService {
             const refreshToken = signRefreshToken(otpDetails.userID);
             logger.info(`Tokens generated for user. UserID: ${userID}`);
 
+            await redisHelper.set(`RefreshToken:${otpDetails.userID!}`, refreshToken, 7 * 24 * 60 * 60); //store in redis for seven days
+            logger.info("Stored refresh token in redis cache for the user: ", otpDetails.userID);
+
             return { accessToken, refreshToken, username: basicUserProfile.username, profilePicture: basicUserProfile.profilePicture };
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
@@ -240,6 +247,9 @@ class AuthService implements IAuthService {
                 const refreshToken = signRefreshToken(resp.id!);
                 logger.info(`Tokens generated for new OAuth user. Email: ${email}`);
 
+                await redisHelper.set(`RefreshToken:${resp.id!!}`, refreshToken, 7 * 24 * 60 * 60); //store in redis for seven days
+                logger.info("Stored refresh token in redis cache for the user: ", resp.id!);
+
                 return { accessToken, refreshToken, username: name, profilePicture: picture };
             } else {
                 if (userDetails.provider === provider) {
@@ -247,6 +257,9 @@ class AuthService implements IAuthService {
                     const accessToken = signAccessToken(userDetails.id!);
                     const refreshToken = signRefreshToken(userDetails.id!);
                     logger.info(`Tokens generated for existing OAuth user. Email: ${email}`);
+
+                    await redisHelper.set(`RefreshToken:${userDetails.id!}`, refreshToken, 7 * 24 * 60 * 60); //store in redis for seven days
+                    logger.info("Stored refresh token in redis cache for the user: ", userDetails.id);
 
                     const basicUserProfile = await this.authRepository.getBasicProfile(userDetails.id!);
                     return { accessToken, refreshToken, username: basicUserProfile.username, profilePicture: basicUserProfile.profilePicture };
@@ -266,12 +279,15 @@ class AuthService implements IAuthService {
         }
     }
 
+    /* generate new access and refresh token on token expiration */
     async generateNewTokens(userID: string): Promise<{accessToken: string, refreshToken: string}>{
         try {
             logger.info(`Generating new access and refresh tokens for ${userID}`);
             const accessToken = signAccessToken(userID);
             const refreshToken = signRefreshToken(userID);
             logger.info(`Generated new access and refresh tokens for ${userID}`);
+            await redisHelper.set(`RefreshToken:${userID}`, refreshToken, 7 * 24 * 60 * 60); //store in redis for seven days
+            logger.info("Stored refresh token in redis cache for the user: ", userID);
             return { accessToken, refreshToken };
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
