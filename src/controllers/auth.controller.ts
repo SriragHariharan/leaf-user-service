@@ -3,6 +3,7 @@ import createHttpError from 'http-errors';
 import { Auth } from '../interfaces/auth.interface';
 import logger from '../helpers/logger';
 import { IAuthService } from '../interfaces/IAuthService';
+import redisHelper from '../helpers/redis.helper';
 
 class AuthController {
     private authService: IAuthService;
@@ -281,7 +282,9 @@ class AuthController {
 
     async generateNewAccessAndRefreshToken(req: Request, res: Response, next: NextFunction){
         try {
+            logger.info("Request received to genereate new access and refresh token for the user: ", req.user?.aud)
             let tokens = await this.authService.generateNewTokens(req.user?.aud!);
+            logger.info("Generated new access and refresh token for the user: ", req.user?.aud);
             return res.status(200).json({success: true, message: null, data: {...tokens}});
         } catch (error) {
             if (error instanceof Error) {
@@ -300,6 +303,11 @@ class AuthController {
             }
             next(error);
         }
+    }
+
+    async logoutUser(req: Request) {
+        await redisHelper.delete(`RefreshToken:${req.user?.aud || null}`);
+        logger.info("Logout completed for user: " + req.user?.aud);
     }
 }
 

@@ -49,4 +49,9 @@ authRouter.post("/oauth-signup", (req: Request, res: Response, next: NextFunctio
 authRouter.post("/refresh-token", validateRefreshToken, (req: Request, res: Response, next: NextFunction) => {
     authController.generateNewAccessAndRefreshToken(req, res, next)
 });
+
+authRouter.post("/logout", validateAccessToken, (req: Request) => {
+    authController.logoutUser(req);
+});
+
 export default authRouter;
