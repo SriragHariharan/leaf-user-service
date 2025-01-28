@@ -5,6 +5,7 @@ import createHttpError from 'http-errors';
 import bodyParser from 'body-parser';
 import profileRouter from './routes/profile.routes';
 import logger from './helpers/logger';
+import friendRouter from './routes/friend.routes';
 
 const app = express();
 
@@ -21,10 +22,11 @@ app.use(bodyParser.json())
 //route all requests with a specific endpoint
 app.use('/auth', authRouter)
 app.use('/profile', profileRouter)
+app.use('/friend', friendRouter)
 
 //handle endpoints not found: 404
 app.use(async (req, res, next) => {
-  next(createHttpError.NotFound())
+  next(createHttpError.NotFound("Route not found"))
 })
 
 //errors from controllers send via next(error) is catched by this.

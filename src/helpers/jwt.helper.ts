@@ -39,7 +39,7 @@ export function validateAccessToken(req: Request, _res: Response, next: NextFunc
         console.log(req.headers, "token comming from client");
         const authHeader = req.headers['authorization'];
         if (!authHeader) {
-            return next(createHttpError.Unauthorized("Unauthorized request, authorization header is required." + req.headers['authorization']));
+            return next(createHttpError.Unauthorized("Unauthorized request, authorization header is required."));
         }
     
         const bearerToken = authHeader.split(' ');
