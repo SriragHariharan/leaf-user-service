@@ -76,6 +76,32 @@ class FriendRepository implements IFriendRepository{
             throw createHttpError(500, "Something went wrong while sending friend request");
         }
     }
+
+    /*  */
+    async getFriendRequests(userID: string): Promise<User[] | null> {
+        try {
+            const friendRequests = await prisma.friends.findMany({
+                where: {
+                    friendID: userID, // The user who received the requests
+                    status: 'pending', // Only fetch pending requests
+                },
+                include: {
+                    Profile: {
+                        select: {
+                            userID: true,
+                            username: true,
+                            profilePicture: true,
+                            description: true
+                        },
+                    },
+                },
+            });
+            return friendRequests;
+        } catch (error) {
+            logger.error(error);
+            throw createHttpError(500, "Something went wrong while getting friend requests");
+        }
+    }
 }
 
 export default FriendRepository;

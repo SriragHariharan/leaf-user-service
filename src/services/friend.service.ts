@@ -47,6 +47,22 @@ class FriendService implements IFriendService {
             }
         }
     }
+
+    /* get all friend requests */
+    async getAllFriendRequests(userID: string): Promise<User[] | null>{
+        try {
+            let friendRequests = await this.friendRepository.getFriendRequests(userID);
+            return friendRequests;
+        } catch (error) {
+            if (createHttpError.isHttpError(error)) {
+                throw error;
+            } else {
+                throw createHttpError(500, "An unexpected error occurred");
+            }
+        }
+    }
+
+
 }
 
 export default FriendService;

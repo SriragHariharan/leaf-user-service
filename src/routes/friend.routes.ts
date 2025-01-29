@@ -24,5 +24,10 @@ friendRouter.post('/request/:friendID', validateAccessToken, (req: Request, res:
     friendController.sendFriendRequest(req, res, next);
 });
 
+/* get all friend requests */
+friendRouter.get('/request', validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    friendController.getFriendRequests(req, res, next);
+});
+
 
 export default friendRouter;

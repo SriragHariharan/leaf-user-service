@@ -11,4 +11,6 @@ export interface IFriendRepository{
             friendID: string; 
             status: string 
         } | null>
+    
+        getFriendRequests(userID: string): Promise<User[] | null >
 }

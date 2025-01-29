@@ -47,6 +47,19 @@ class FriendController{
             next(error);
         }
     }
+
+    async getFriendRequests(req: Request, res: Response, next: NextFunction){
+        try {
+            const userID = req.user?.aud;
+            logger.info("Call received in getFriendRequest controller for userID: ", userID);
+            let friendRequests = await this.friendService.getAllFriendRequests(userID);
+            logger.info("Sent the Friend requests received for userID : ", userID);
+            return res.status(200).json({ success: true, message: "", data: { friendRequests } });
+        } catch (error) {
+            logger.error("Error in getFriendRequests controller: ", error);
+            next(error);
+        }
+    }
 }
 
 export default FriendController;
