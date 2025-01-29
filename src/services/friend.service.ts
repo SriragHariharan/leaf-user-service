@@ -17,9 +17,28 @@ class FriendService implements IFriendService {
 
     async searchUser(userID: string, query: string): Promise<User[]> {
         try {
-            logger.info("Call recieved in searchUser service for user " + userID + " with query " + query);
+            logger.info("Call recieved in searchUser service for user ", userID, " with query ", query);
             let searchResults = await this.friendRepository.searchUsersByName(query, userID);
             return searchResults;
+        } catch (error) {
+            if (createHttpError.isHttpError(error)) {
+                throw error;
+            } else {
+                throw createHttpError(500, "An unexpected error occurred");
+            }
+        }
+    }
+
+    async sendFriendRequest(userID: string, friendID: string): Promise<boolean> {
+        try {
+            let existingFriendRequest = await this.friendRepository.checkExistingRequest(userID, friendID);
+            if(existingFriendRequest) {
+                return true;
+            }else{
+                let newFriendResponse = await this.friendRepository.sendFriendRequest(userID, friendID);
+                console.log(newFriendResponse);
+                return true;
+            }
         } catch (error) {
             if (createHttpError.isHttpError(error)) {
                 throw error;

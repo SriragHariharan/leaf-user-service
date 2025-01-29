@@ -19,4 +19,10 @@ friendRouter.get('/search', validateAccessToken, (req: Request, res: Response, n
     friendController.searchUsers(req, res, next);
 });
 
+/* send friend request */
+friendRouter.post('/request/:friendID', validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    friendController.sendFriendRequest(req, res, next);
+});
+
+
 export default friendRouter;
