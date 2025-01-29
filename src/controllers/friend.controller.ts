@@ -60,6 +60,38 @@ class FriendController{
             next(error);
         }
     }
+
+    async acceptFriendRequest(req: Request, res: Response, next: NextFunction){
+        try {
+            const friendRequestID = Number(req.params.id);
+            const userID = req.user?.aud;
+            if(!friendRequestID){
+                logger.error("friend request ID is missing in params for friend request ID: ", friendRequestID, " of user ID ", userID);
+                throw createHttpError(400, "Invalid friend request");
+            }
+            await this.friendService.acceptFriendRequest(friendRequestID, userID);
+            logger.info("Friend request accepted for friend request ID: ", friendRequestID, " of user ID ", userID);
+            return res.status(201).json({ success: true, message: "Friend request accepted", data: {}})
+        } catch (error) {
+            next(error);   
+        }
+    }
+
+    async rejectFriendRequest(req: Request, res: Response, next: NextFunction){
+        try {
+            const friendRequestID = Number(req.params.id);
+            const userID = req.user?.aud;
+            if(!friendRequestID){
+                logger.error("friend request ID is missing in params for friend request ID: ", friendRequestID, " of user ID ", userID);
+                throw createHttpError(400, "Invalid friend request");
+            }
+            await this.friendService.rejectFriendRequest(friendRequestID, userID);
+            logger.info("Friend request accepted for friend request ID: ", friendRequestID, " of user ID ", userID);
+            return res.status(201).json({ success: true, message: "Friend request rejected", data: {}})
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 export default FriendController;

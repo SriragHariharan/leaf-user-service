@@ -29,5 +29,12 @@ friendRouter.get('/request', validateAccessToken, (req: Request, res: Response, 
     friendController.getFriendRequests(req, res, next);
 });
 
+friendRouter.put("/request/:id", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    friendController.acceptFriendRequest(req, res, next);
+});
+
+friendRouter.delete("/request/:id", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    friendController.rejectFriendRequest(req, res, next);
+});
 
 export default friendRouter;

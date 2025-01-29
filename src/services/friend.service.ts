@@ -62,6 +62,35 @@ class FriendService implements IFriendService {
         }
     }
 
+    /* accept friend request */
+    async acceptFriendRequest(friendRequestID: number, userID: string): Promise<boolean> {
+        try {
+            await this.friendRepository.acceptFriendRequest(friendRequestID, userID);
+            return true;
+        } catch (error) {
+            if (createHttpError.isHttpError(error)) {
+                throw error;
+            } else {
+                throw createHttpError(500, "An unexpected error occurred");
+            }
+        }
+    }
+
+    /* accept friend request */
+    async rejectFriendRequest(friendRequestID: number, userID: string): Promise<boolean> {
+        try {
+            await this.friendRepository.rejectFriendRequest(friendRequestID, userID);
+            return true;
+        } catch (error) {
+            if (createHttpError.isHttpError(error)) {
+                throw error;
+            } else {
+                throw createHttpError(500, "An unexpected error occurred");
+            }
+        }
+    }
+    
+
 
 }
 
