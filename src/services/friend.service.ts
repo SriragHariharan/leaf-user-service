@@ -90,6 +90,31 @@ class FriendService implements IFriendService {
         }
     }
     
+    async getTotalFriendsCount(userID: string): Promise<number | null> {
+        try {
+            const friendsCount = await this.friendRepository.getTotalFriendsCount(userID);
+            return friendsCount;
+        } catch (error) {
+            if (createHttpError.isHttpError(error)) {
+                throw error;
+            } else {
+                throw createHttpError(500, "An unexpected error occurred");
+            }
+        }
+    }
+
+    async getFriendsList(userID: string, page: number): Promise<User[] | null> {
+        try {
+            const users = await this.friendRepository.getFriendsList(userID, page);
+            return users;
+        } catch (error) {
+            if (createHttpError.isHttpError(error)) {
+                throw error;
+            } else {
+                throw createHttpError(500, "An unexpected error occurred");
+            }
+        }
+    }
 
 
 }

@@ -92,6 +92,29 @@ class FriendController{
             next(error);
         }
     }
+
+    async getTotalFriendsCount(req: Request, res: Response, next: NextFunction){
+        try {
+            const userID = req.user?.aud;
+            const friendsCount = await this.friendService.getTotalFriendsCount(userID);
+            return res.status(200).json({ success: true, message: null, data: { count: friendsCount }});
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getFriendsByPage(req: Request, res: Response, next: NextFunction){
+        try {
+            const page = Number(req.query?.page) ?? 1;
+            const userID = req.user?.aud;
+            const friends = await this.friendService.getFriendsList(userID, page)
+            return res.status(200).json({ success: true, message:null, data: { friends }});
+        } catch (error) {
+            next(error);
+        }
+    }
+
+
 }
 
 export default FriendController;

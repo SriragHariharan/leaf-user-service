@@ -37,4 +37,13 @@ friendRouter.delete("/request/:id", validateAccessToken, (req: Request, res: Res
     friendController.rejectFriendRequest(req, res, next);
 });
 
+friendRouter.get("/friends/count", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    friendController.getTotalFriendsCount(req, res, next);
+});
+
+friendRouter.get("/friends", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    friendController.getFriendsByPage(req, res, next);
+});
+
+
 export default friendRouter;

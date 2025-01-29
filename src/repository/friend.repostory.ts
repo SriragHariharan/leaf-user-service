@@ -148,6 +148,63 @@ class FriendRepository implements IFriendRepository {
             throw createHttpError(500, "Failed to reject friend request");
         }
     }
+
+    async getTotalFriendsCount(userID: string): Promise<number | null> {
+        try {
+            const totalFriends = await prisma.friends.count({
+                where: {
+                    OR: [
+                        { userID:   userID, status: "accepted" },
+                        { friendID: userID, status: "accepted" },
+                    ],
+                },
+            });
+            return totalFriends;
+        } catch (error) {
+            logger.error(`[FriendRepository] Error finding friends count for userID: ${userID}`, error);
+            throw createHttpError(500, "Failed to get total friends count");
+        }
+    }
+
+    async getFriendsList(userID: string, page: number): Promise<User[] | null> {
+    try {
+        logger.info(`[FriendRepository] Fetching friends list for userID: ${userID}, page: ${page}`);
+
+        if (page < 1) {
+            logger.warn(`[FriendRepository] Invalid page number: ${page}. Defaulting to page 1.`);
+            page = 1;
+        }
+
+        const skip = (page - 1) * 35; // Calculate skip value for pagination
+
+        const friends = await prisma.friends.findMany({
+            where: {
+                OR: [
+                    { userID: userID, status: "accepted" },
+                    { friendID: userID, status: "accepted" },
+                ],
+            },
+            include: {
+                Profile: {
+                    select: {
+                        userID: true,
+                        username: true,
+                        profilePicture: true,
+                        description: true,
+                    },
+                },
+            },
+            skip: skip, // Skip records for pagination
+            take: 35, // Limit to 35 records per page
+        });
+
+        logger.info(`[FriendRepository] Successfully fetched ${friends.length} friends for userID: ${userID}, page: ${page}`);
+        return friends;
+    } catch (error) {
+        logger.error(`[FriendRepository] Error fetching friends list for userID: ${userID}, page: ${page}`, error);
+        throw createHttpError(500, "Failed to fetch friends list");
+    }
+}
 }
 
 export default FriendRepository;

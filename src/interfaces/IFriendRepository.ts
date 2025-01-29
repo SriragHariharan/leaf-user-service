@@ -14,4 +14,7 @@ export interface IFriendRepository{
     rejectFriendRequest(friendRequestID: number, userID: string)
         : Promise<{ id: number; userID: string; friendID: string; status: string; createdAt: Date; }> 
     
+    getTotalFriendsCount(userID: string): Promise<number | null>
+
+    getFriendsList(userID: string, page: number): Promise<User[] | null>
 }
