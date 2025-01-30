@@ -7,6 +7,8 @@ export interface Auth {
     id?: string,
     provider?: string|null,
     profilePicture?: string|null
+    type?: string|null
+    userID?: string|null
 }
 
 export interface User { 

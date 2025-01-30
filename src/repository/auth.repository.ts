@@ -137,7 +137,7 @@ class AuthRepository implements IAuthRepository {
             logger.info(`Fetching basic profile details for user. UserID: ${userID}`);
             const userProfile = await prisma.profile.findUnique({
                 where: { userID },
-                select: { username: true, profilePicture: true },
+                select: { username: true, profilePicture: true, userID: true },
             });
 
             if (!userProfile) {

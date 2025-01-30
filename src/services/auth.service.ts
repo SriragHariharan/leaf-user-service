@@ -8,6 +8,7 @@ import createHttpError from "http-errors";
 import { signAccessToken, signRefreshToken } from "../helpers/jwt.helper";
 import logger from "../helpers/logger";
 import redisHelper from "../helpers/redis.helper";
+import sendUserEvents from "../messaging/rabbitmq/producer";
 
 class AuthService implements IAuthService {
     private authRepository: IAuthRepository;
@@ -169,6 +170,10 @@ class AuthService implements IAuthService {
             const accessToken = signAccessToken(otpDetails.userID);
             const refreshToken = signRefreshToken(otpDetails.userID);
             logger.info(`Tokens generated for user. UserID: ${userID}`);
+
+            /* send basic profile to rabbitMQ */
+            sendUserEvents({type: "user", ...basicUserProfile});
+            logger.info(`Basic profile sent to rabbitMQ for UserID: ${userID}`);
 
             await redisHelper.set(`RefreshToken:${otpDetails.userID!}`, refreshToken, 7 * 24 * 60 * 60); //store in redis for seven days
             logger.info("Stored refresh token in redis cache for the user: ", otpDetails.userID);

@@ -5,6 +5,7 @@ import resizeImage from "../helpers/sharp.helper";
 import uploadToS3 from "../helpers/s3Bucket.helper";
 import logger from "../helpers/logger";
 import createHttpError from "http-errors";
+import sendUserEvents from "../messaging/rabbitmq/producer";
 
 class ProfileService implements IProfileService {
     private profileRepository: IProfileRepository;
@@ -32,6 +33,10 @@ class ProfileService implements IProfileService {
             logger.info(`Updating username for userID: ${userID}`);
             const updatedUsername = await this.profileRepository.updateExistingUsername(username, userID);
             logger.info(`Successfully updated username for userID: ${userID}`);
+
+            sendUserEvents({ type: "username", username: updatedUsername, userID });
+            logger.info(`Sent the updated username to other services via rabbitmq for userID: ${userID}`);
+
             return updatedUsername;
         } catch (error) {
             logger.error(`Error updating username for userID: ${userID}`, { error });
@@ -139,6 +144,9 @@ class ProfileService implements IProfileService {
                 const profilePictureImageName = `profile/${userID}-s200.jpg`;
                 const profilePictureUrl = await uploadToS3(profilePictureBufferString, profilePictureImageName);
                 await this.profileRepository.updatePicture(userID, profilePictureUrl, type);
+
+                sendUserEvents({type: "picture", profilePicture: profilePictureUrl, userID});
+                logger.info(`Sent the updated profile picture url to other services via rabbitmq for userID: ${userID}`);
 
                 logger.info(`Successfully uploaded profile picture for userID: ${userID}`);
                 return profilePictureUrl;
