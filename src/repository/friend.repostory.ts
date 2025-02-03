@@ -167,44 +167,77 @@ class FriendRepository implements IFriendRepository {
     }
 
     async getFriendsList(userID: string, page: number): Promise<User[] | null> {
-    try {
-        logger.info(`[FriendRepository] Fetching friends list for userID: ${userID}, page: ${page}`);
+        try {
+            logger.info(`[FriendRepository] Fetching friends list for userID: ${userID}, page: ${page}`);
 
-        if (page < 1) {
-            logger.warn(`[FriendRepository] Invalid page number: ${page}. Defaulting to page 1.`);
-            page = 1;
-        }
+            if (page < 1) {
+                logger.warn(`[FriendRepository] Invalid page number: ${page}. Defaulting to page 1.`);
+                page = 1;
+            }
 
-        const skip = (page - 1) * 35; // Calculate skip value for pagination
+            const skip = (page - 1) * 35; // Calculate skip value for pagination
 
-        const friends = await prisma.friends.findMany({
-            where: {
-                OR: [
-                    { userID: userID, status: "accepted" },
-                    { friendID: userID, status: "accepted" },
-                ],
-            },
-            include: {
-                Profile: {
-                    select: {
-                        userID: true,
-                        username: true,
-                        profilePicture: true,
-                        description: true,
+            const friends = await prisma.friends.findMany({
+                where: {
+                    OR: [
+                        { userID: userID, status: "accepted" },
+                        { friendID: userID, status: "accepted" },
+                    ],
+                },
+                include: {
+                    Profile: {
+                        select: {
+                            userID: true,
+                            username: true,
+                            profilePicture: true,
+                            description: true,
+                        },
                     },
                 },
-            },
-            skip: skip, // Skip records for pagination
-            take: 35, // Limit to 35 records per page
-        });
+                skip: skip, // Skip records for pagination
+                take: 35, // Limit to 35 records per page
+            });
 
-        logger.info(`[FriendRepository] Successfully fetched ${friends.length} friends for userID: ${userID}, page: ${page}`);
-        return friends;
-    } catch (error) {
-        logger.error(`[FriendRepository] Error fetching friends list for userID: ${userID}, page: ${page}`, error);
-        throw createHttpError(500, "Failed to fetch friends list");
+            logger.info(`[FriendRepository] Successfully fetched ${friends.length} friends for userID: ${userID}, page: ${page}`);
+            return friends;
+        } catch (error) {
+            logger.error(`[FriendRepository] Error fetching friends list for userID: ${userID}, page: ${page}`, error);
+            throw createHttpError(500, "Failed to fetch friends list");
+        }
     }
-}
+
+    /* get all the IDs of friends as array for feed service */
+    async getFriendIDs(userID: string): Promise<string[]> {
+        try {
+            logger.info(`[FriendRepository] Fetching friend IDs for userID: ${userID}`);
+            const friends = await prisma.friends.findMany({
+                where: {
+                    OR: [
+                        { userID: userID, status: "accepted" },
+                        { friendID: userID, status: "accepted" },
+                    ],
+                },
+                select: {
+                    userID: true,
+                    friendID: true,
+                },
+            });
+
+            const friendIDs = friends.map((friend) => {
+                if (friend.userID === userID) {
+                    return friend.friendID;
+                } else {
+                    return friend.userID;
+                }
+            });
+
+            logger.info(`[FriendRepository] Successfully fetched ${friendIDs.length} friend IDs for userID: ${userID}`);
+            return friendIDs;
+        } catch (error) {
+            logger.error(`[FriendRepository] Error fetching friend IDs for userID: ${userID}`, error);
+            throw createHttpError(500, "Failed to fetch friend IDs");
+        }
+    }
 }
 
 export default FriendRepository;

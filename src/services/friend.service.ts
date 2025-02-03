@@ -116,6 +116,19 @@ class FriendService implements IFriendService {
         }
     }
 
+    /* get all friend's ID as array for feed service */
+    async getFriendIDs(userID: string): Promise<string[]> {
+        try {
+            const friendIDs = await this.friendRepository.getFriendIDs(userID);
+            return friendIDs;
+        } catch (error) {
+            if (createHttpError.isHttpError(error)) {
+                throw error;
+            } else {
+                throw createHttpError(500, "An unexpected error occurred");
+            }
+        }
+    }
 
 }
 

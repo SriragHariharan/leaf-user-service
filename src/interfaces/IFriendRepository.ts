@@ -17,4 +17,6 @@ export interface IFriendRepository{
     getTotalFriendsCount(userID: string): Promise<number | null>
 
     getFriendsList(userID: string, page: number): Promise<User[] | null>
+
+    getFriendIDs(userID: string): Promise<string[]>
 }

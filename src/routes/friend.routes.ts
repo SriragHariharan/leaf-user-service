@@ -45,5 +45,10 @@ friendRouter.get("/friends", validateAccessToken, (req: Request, res: Response, 
     friendController.getFriendsByPage(req, res, next);
 });
 
+/* get friendID's as array for feeds service */
+friendRouter.get("/friends/ids", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    friendController.getFriendIDs(req, res, next);
+});
+
 
 export default friendRouter;

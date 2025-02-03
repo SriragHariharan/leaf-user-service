@@ -114,6 +114,20 @@ class FriendController{
         }
     }
 
+    /* get friendID's as array */
+    async getFriendIDs(req: Request, res: Response, next: NextFunction){
+        try {
+            const userID = req.user?.aud;
+            if(!userID){
+                logger.error("User ID is missing with the endpoint");
+                throw createHttpError(400, "User ID is missing");
+            }
+            const friendIDs = await this.friendService.getFriendIDs(userID);
+            return res.status(200).json({ success: true, message: null, data: { friendIDs }});
+        } catch (error) {
+            next(error);
+        }
+    }
 
 }
 
