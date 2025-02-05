@@ -7,33 +7,77 @@ import { User } from "../interfaces/auth.interface";
 class FriendRepository implements IFriendRepository {
 
     async searchUsersByName(search: string, userID: string): Promise<User[]> {
-        try {
-            logger.info(`[FriendRepository] Searching for users with query: "${search}" for userID: ${userID}`);
-            const users = await prisma.profile.findMany({
-                where: {
-                    username: {
-                        contains: search,
-                    },
-                    userID: {
-                        not: userID,
+    try {
+        logger.info(`[FriendRepository] Searching for users with query: "${search}" for userID: ${userID}`);
+        const users = await prisma.profile.findMany({
+            where: {
+                username: {
+                    contains: search,
+                },
+                userID: {
+                    not: userID,
+                },
+            },
+            take: 100, // Limit to 100 users
+            select: {
+                userID: true,
+                username: true,
+                description: true,
+                profilePicture: true,
+                User: {
+                    select: {
+                        Friends: {
+                            where: {
+                                OR: [
+                                    { userID: userID }, // Check if the current user is the friend
+                                    { friendID: userID }, // Check if the current user is the friend of
+                                ],
+                            },
+                            select: {
+                                status: true,
+                                friendID: true,
+                                userID: true,
+                            },
+                        },
                     },
                 },
-                take: 100, // Limit to 100 users
-                select: {
-                    userID: true,
-                    username: true,
-                    description: true,
-                    profilePicture: true,
-                },
-            });
-            logger.info(`[FriendRepository] Successfully fetched ${users.length} users for userID: ${userID}`);
-            return users;
+            },
+        });
 
-        } catch (error) {
-            logger.error(`[FriendRepository] Error searching users for userID: ${userID}`, error);
-            throw new Error("Failed to search users");
-        }
+        // Map the results to include a `isFriend` flag and `friendStatus` flag
+        const usersWithFriendStatus = users.map((user) => {
+            const friend = user.User.Friends.find((friendship) => {
+                return (friendship.userID === userID && friendship.friendID === user.userID) ||
+                       (friendship.userID === user.userID && friendship.friendID === userID);
+            });
+
+            let isFriend = false;
+            let friendStatus = 'not_friend'; // not_friend, pending, accepted
+
+            if (friend) {
+                if (friend.status === 'accepted') {
+                    isFriend = true;
+                    friendStatus = 'accepted';
+                } else if (friend.status === 'pending') {
+                    friendStatus = 'pending';
+                }
+            }
+
+            return {
+                ...user,
+                isFriend,
+                friendStatus,
+            };
+        });
+
+        logger.info(`[FriendRepository] Successfully fetched ${users.length} users for userID: ${userID}`);
+        return usersWithFriendStatus;
+
+    } catch (error) {
+        logger.error(`[FriendRepository] Error searching users for userID: ${userID}`, error);
+        throw new Error("Failed to search users");
     }
+}
 
     async checkExistingRequest(userID: string, friendID: string)
         : Promise<{ 
