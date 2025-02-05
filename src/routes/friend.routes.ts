@@ -29,18 +29,22 @@ friendRouter.get('/request', validateAccessToken, (req: Request, res: Response, 
     friendController.getFriendRequests(req, res, next);
 });
 
+/* accept friend request */
 friendRouter.put("/request/:id", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
     friendController.acceptFriendRequest(req, res, next);
 });
 
+/* reject friend request */
 friendRouter.delete("/request/:id", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
     friendController.rejectFriendRequest(req, res, next);
 });
 
+/* get the count of friends */
 friendRouter.get("/friends/count", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
     friendController.getTotalFriendsCount(req, res, next);
 });
 
+/* get friends details by page */
 friendRouter.get("/friends", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
     friendController.getFriendsByPage(req, res, next);
 });

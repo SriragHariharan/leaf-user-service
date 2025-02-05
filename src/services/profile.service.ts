@@ -27,6 +27,19 @@ class ProfileService implements IProfileService {
         }
     }
 
+    /* get profile details with friendship status */
+    async getProfileDetailsWithFriendshipStatus(userID: string, profileID: string): Promise<Object> {
+        try {
+            logger.info(`Fetching profile details with friendship status for userID: ${userID}`);
+            const userDetails = await this.profileRepository.getProfileDetailsWithFriendshipStatus(userID, profileID);
+            logger.info(`Successfully fetched profile details with friendship status for userID: ${userID}`);
+            return userDetails;
+        } catch (error) {
+            logger.error(`Error fetching profile details with friendship status for userID: ${userID}`, { error });
+            throw createHttpError(500, "Unable to get user profile details");
+        }
+    }
+
     /* Update the existing username */
     async updateExistingUsername(username: string, userID: string): Promise<string> {
         try {

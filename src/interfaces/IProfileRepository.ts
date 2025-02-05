@@ -8,4 +8,5 @@ export interface IProfileRepository{
     getBucketList(userID: string): Promise<Object>
     updatePicture(userID: string, picture: string, type: string): Promise<boolean>
     getProfileDetails(userID: string): Promise<Object>
+    getProfileDetailsWithFriendshipStatus(userID: string, profileID: string): Promise<Object>
 }

@@ -26,6 +26,50 @@ class ProfileRepository implements IUsernameRepository, IProfileRepository {
         }
     }
 
+    /* get profile details with friendship status */
+    async getProfileDetailsWithFriendshipStatus(userID: string, profileID: string): Promise<Object> {
+  try {
+    logger.info(`Fetching profile details for profileID: ${profileID} by userID: ${userID}`);
+
+    // Fetch the profile details for the given profileID.
+    const userProfile = await prisma.profile.findUnique({
+      where: { userID: profileID },
+    });
+
+    if (!userProfile) {
+      logger.warn(`Profile not found for profileID: ${profileID}`);
+      throw createHttpError(404, "User not found");
+    }
+
+    // Check if a friendship exists with either accepted or pending status between the two users.
+    const friendship = await prisma.friends.findFirst({
+      where: {
+        OR: [
+          { userID: userID, friendID: profileID, status: { in: ['accepted', 'pending'] } },
+          { userID: profileID, friendID: userID, status: { in: ['accepted', 'pending'] } },
+        ],
+      },
+    });
+
+    let isFriend = false;
+    let friendStatus = 'not_friend';
+    if (friendship) {
+      if (friendship.status === 'accepted') {
+        isFriend = true;
+        friendStatus = 'friend';
+      } else if (friendship.status === 'pending') {
+        friendStatus = 'pending';
+      }
+    }
+
+    logger.info(`Successfully fetched profile details for profileID: ${profileID} with friendship status: ${friendStatus}`);
+    return { ...userProfile, isFriend, friendStatus };
+  } catch (error) {
+    logger.error(`Error fetching profile details for profileID: ${profileID}`, { error });
+    throw createHttpError(500, "Something went wrong.");
+  }
+}
+
     async updateUsername(userID: string, username: string): Promise<string> {
         try {
             logger.info(`Updating username for userID: ${userID}`);

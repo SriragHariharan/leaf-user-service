@@ -21,4 +21,6 @@ export interface IProfileService {
     addBucketListDestination(userID: string, destination: string, notes: string): Promise<Object>;
     getBucketListDestination(userID: string): Promise<Object>;
     uploadPicture(imageBuffer: Buffer, sizes: Size[], type: string, userID: string): Promise<string>;
+
+    getProfileDetailsWithFriendshipStatus(userID: string, profileID: string): Promise<Object>
 }

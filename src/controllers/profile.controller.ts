@@ -14,14 +14,16 @@ class ProfileController {
     /* Get profile details controller */
     async getProfileDetails(req: Request, res: Response, next: NextFunction) {
         try {
-            const id = req.params.id;
-            const userID = id === "self" ? req.user?.aud! : id;
-            logger.info(`Fetching profile details for userID: ${userID}`);
-
-            const userDetails = await this.profileService.getProfileDetails(userID);
-            logger.info(`Successfully fetched profile details for userID: ${userID}`);
-
-            return res.status(200).json({ success: true, message: "", data: { ...userDetails } });
+            const urlID = req.params.id;
+            const userID = req.user?.aud!;
+            if(urlID === "self") {
+                const userDetails = await this.profileService.getProfileDetails(userID);
+                logger.info(`Successfully fetched profile details for userID: ${userID}`);
+                return res.status(200).json({ success: true, message: "", data: { ...userDetails } });
+            }else{
+                const userDetails = await this.profileService.getProfileDetailsWithFriendshipStatus(req.user?.aud!, req.params.id);
+                return res.status(200).json({ success: true, message: "", data: { ...userDetails } });
+            }
         } catch (error) {
             logger.error(`Error fetching profile details for userID: ${req.params.id}`, { error });
             next(error);
