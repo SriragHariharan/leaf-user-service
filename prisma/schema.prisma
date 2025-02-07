@@ -8,24 +8,26 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  password      String?
-  createdAt     DateTime @default(now())
-  status        String   @default("active")
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?
+  createdAt DateTime @default(now())
+  status    String   @default("active")
 
   Profile       Profile?
   OTP           OTP[]
-  Friends       Friends[] @relation("UserFriends")
-  FriendOf      Friends[] @relation("FriendOf")
+  Friends       Friends[]       @relation("UserFriends")
+  FriendOf      Friends[]       @relation("FriendOf")
   TravelHistory TravelHistory[]
   BucketList    BucketList[]
   ImageGallery  ImageGallery[]
 
-  provider      String?
-  providerId    String?  @unique
-}
+  provider   String?
+  providerId String? @unique
 
+  ReportsMade     Report[] @relation("UserReports")
+  ReportsReceived Report[] @relation("UserReported")
+}
 
 model OTP {
   id        Int      @id @default(autoincrement())
@@ -38,19 +40,17 @@ model OTP {
   User User @relation(fields: [userID], references: [id])
 }
 
-
-
 model Profile {
-  id             Int     @id @default(autoincrement())
-  userID         String @unique
-  username       String  
+  id             Int      @id @default(autoincrement())
+  userID         String   @unique
+  username       String
   description    String?
   profilePicture String?
   coverPicture   String?
   location       String?
-  createdAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
 
-  User User @relation(fields: [userID], references: [id])
+  User    User      @relation(fields: [userID], references: [id])
   Friends Friends[]
 }
 
@@ -61,18 +61,18 @@ model Friends {
   status    String
   createdAt DateTime @default(now())
 
-  User     User     @relation("UserFriends", fields: [userID], references: [id], map: "FK_UserFriends_User")
-  FriendOf User     @relation("FriendOf", fields: [friendID], references: [id], map: "FK_FriendOf_User")
-  Profile  Profile  @relation(fields: [userID], references: [userID], map: "FK_Friends_Profile")
+  User     User    @relation("UserFriends", fields: [userID], references: [id], map: "FK_UserFriends_User")
+  FriendOf User    @relation("FriendOf", fields: [friendID], references: [id], map: "FK_FriendOf_User")
+  Profile  Profile @relation(fields: [userID], references: [userID], map: "FK_Friends_Profile")
 }
 
 model TravelHistory {
-  id          Int     @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   userID      String
   destination String
   yearVisited String
 
-  User   User   @relation(fields: [userID], references: [id])
+  User   User     @relation(fields: [userID], references: [id])
   Places Places[]
 }
 
@@ -99,7 +99,7 @@ model ImageGallery {
   galleryName String
   createdAt   DateTime @default(now())
 
-  User   User    @relation(fields: [userID], references: [id])
+  User   User     @relation(fields: [userID], references: [id])
   Images Images[]
 }
 
@@ -110,4 +110,19 @@ model Images {
   createdAt DateTime @default(now())
 
   ImageGallery ImageGallery @relation(fields: [galleryID], references: [id])
+}
+
+model Report {
+  id          Int      @id @default(autoincrement())
+  reporterID  String
+  reportedID  String
+  issue       String
+  description String?
+  priority    String   @default("low") // Can be 'low', 'medium', 'high'
+  status      String   @default("pending") // Can be 'pending', 'resolved', 'rejected'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  Reporter User @relation("UserReports", fields: [reporterID], references: [id])
+  Reported User @relation("UserReported", fields: [reportedID], references: [id])
 }

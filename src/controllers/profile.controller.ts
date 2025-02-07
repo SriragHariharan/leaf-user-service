@@ -207,6 +207,26 @@ class ProfileController {
             next(error);
         }
     }
+
+    /* report profile */
+    async reportUser(req: Request, res: Response, next: NextFunction) {
+        try {
+            const reporterID = req?.user?.aud; //id of the person who reports profile
+            const reportedID = req?.params.userID;
+            if(!reportedID){
+                logger.error("The ID of the profile to be reported is not passed as params");
+                createHttpError(400, "Unable to report the profile");
+            }
+            const { issue, priority, description } = req.body;
+            if(!issue || !priority ){
+                throw createHttpError(400, "All fields are required");
+            }
+            await this.profileService.reportUser(reporterID, reportedID, issue, description, priority);
+            return res.status(200).json({ success: true, message: "Profile reported", data: {} });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 export default ProfileController;

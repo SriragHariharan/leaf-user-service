@@ -180,6 +180,17 @@ class ProfileService implements IProfileService {
             throw createHttpError(500, "Unable to update");
         }
     }
+
+    /* report a profile */
+    async reportUser(reporterID: string, reportedID: string, issue: string, description?: string, priority?: string): Promise<{ id: number; reporterID: string; reportedID: string; issue: string; description?: string; priority: string; }> {
+        try {
+            const report = await this.profileRepository.reportUser(reporterID, reportedID, issue, description, priority);
+            return report;
+        } catch (error) {
+            logger.error("Error reporting profile of the user :", reportedID, " By the user ", reporterID)
+            throw createHttpError(500, "Unable to report profile");
+        }
+    }
 }
 
 export default ProfileService;

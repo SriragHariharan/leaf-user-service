@@ -9,4 +9,21 @@ export interface IProfileRepository{
     updatePicture(userID: string, picture: string, type: string): Promise<boolean>
     getProfileDetails(userID: string): Promise<Object>
     getProfileDetailsWithFriendshipStatus(userID: string, profileID: string): Promise<Object>
+    reportUser(
+        reporterID: string,  
+        reportedID: string, 
+        issue: string, 
+        description?: string, 
+        priority?: string
+    ): Promise<{ 
+        id: number; 
+        reporterID: string; 
+        reportedID: string; 
+        issue: string; 
+        description?: string | undefined; 
+        priority: string; 
+        createdAt: Date; 
+        status: string; 
+        updatedAt: Date; 
+    }>
 }

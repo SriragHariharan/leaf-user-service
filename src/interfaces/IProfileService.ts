@@ -23,4 +23,12 @@ export interface IProfileService {
     uploadPicture(imageBuffer: Buffer, sizes: Size[], type: string, userID: string): Promise<string>;
 
     getProfileDetailsWithFriendshipStatus(userID: string, profileID: string): Promise<Object>
+
+    reportUser(
+        reporterID: string,  //id of the persom reporting the profile
+        reportedID: string, //id of the reported profile
+        issue: string, 
+        description?: string, 
+        priority?: string
+    ): Promise<{ id: number; reporterID: string; reportedID: string; issue: string; description?: string; priority: string }>
 }

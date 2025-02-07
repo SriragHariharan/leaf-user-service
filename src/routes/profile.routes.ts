@@ -56,4 +56,10 @@ profileRouter.post("/picture/:type", validateAccessToken, upload.single("picture
     profileController.uploadPicture(req, res, next)
 });
 
+
+/* report a profile */
+profileRouter.post("/report/:userID", validateAccessToken, (req: Request, res: Response, next: NextFunction) => {
+    profileController.reportUser(req, res, next)
+});
+
 export default profileRouter;
