@@ -254,6 +254,9 @@ class AuthService implements IAuthService {
 
                 await redisHelper.set(`RefreshToken:${resp.id!!}`, refreshToken, 7 * 24 * 60 * 60); //store in redis for seven days
                 logger.info("Stored refresh token in redis cache for the user: ", resp.id!);
+                
+                /* send basic profile to rabbitMQ */
+                sendUserEvents({type: "user", userID: resp.id!, username: name, profilePicture: picture});
 
                 return { accessToken, refreshToken, username: name, profilePicture: picture };
             } else {
@@ -267,6 +270,7 @@ class AuthService implements IAuthService {
                     logger.info("Stored refresh token in redis cache for the user: ", userDetails.id);
 
                     const basicUserProfile = await this.authRepository.getBasicProfile(userDetails.id!);
+
                     return { accessToken, refreshToken, username: basicUserProfile.username, profilePicture: basicUserProfile.profilePicture };
                 } else {
                     logger.warn(`User used a different authentication provider. Email: ${email}`);
