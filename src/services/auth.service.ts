@@ -8,7 +8,8 @@ import createHttpError from "http-errors";
 import { signAccessToken, signRefreshToken } from "../helpers/jwt.helper";
 import logger from "../helpers/logger";
 import redisHelper from "../helpers/redis.helper";
-import sendUserEvents from "../messaging/rabbitmq/producer";
+import sendUserEvents from "../messaging/rabbitmq/user-events.producer";
+import sendValidationOtp from "../messaging/rabbitmq/otp.producer";
 
 class AuthService implements IAuthService {
     private authRepository: IAuthRepository;
@@ -44,11 +45,12 @@ class AuthService implements IAuthService {
             logger.info(`Username updated in profile database. UserID: ${user.id}`);
 
             // Generate OTP and store it
-            await this.generateAndStoreOtp(user.id!);
+            const otp = await this.generateAndStoreOtp(user.id!);
             logger.info(`OTP generated and stored for user. UserID: ${user.id}`);
 
             // Send OTP to notification service
             console.log("Sending OTP to the notification service");
+            sendValidationOtp("otp", user.email!, otp );
 
             return user.id!;
         } catch (error) {
@@ -122,6 +124,8 @@ class AuthService implements IAuthService {
             console.log("Reset link ::: ", resetLink);
             logger.info(`Reset link generated for user. Email: ${email}`);
 
+            sendValidationOtp("link", email, resetLink);
+            
             // Send to notification service
             logger.info(`Reset link sent to notification service. Email: ${email}`);
 
@@ -193,8 +197,11 @@ class AuthService implements IAuthService {
     /* Resend OTP */
     async resendOtp(userID: string): Promise<boolean> {
         logger.info(`Resend OTP request received. UserID: ${userID}`);
-        await this.generateAndStoreOtp(userID);
+        const userDetails = await this.authRepository.getBasicProfile(userID);
+        const otp = await this.generateAndStoreOtp(userID);
         logger.info(`OTP resent to user. UserID: ${userID}`);
+        const email = await this.authRepository.getEmailByUserId(userID);
+        sendValidationOtp("otp", email, otp);
         return true;
     }
 
@@ -219,7 +226,7 @@ class AuthService implements IAuthService {
     }
 
     /* Generate and store OTP */
-    async generateAndStoreOtp(userID: string): Promise<boolean> {
+    async generateAndStoreOtp(userID: string): Promise<number> {
         logger.info(`Generating OTP for user. UserID: ${userID}`);
         try {
             const otp = generateOtp();
@@ -231,7 +238,7 @@ class AuthService implements IAuthService {
             await this.authRepository.saveOTP({ userID, otp, expiresAt });
             logger.info(`OTP stored for user. UserID: ${userID}`);
 
-            return true;
+            return otp;
         } catch (error) {
             logger.error(`Error generating and storing OTP. UserID: ${userID}`, { error });
             throw createHttpError(500, "An unexpected error occurred");

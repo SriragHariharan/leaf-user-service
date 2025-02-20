@@ -8,4 +8,5 @@ export interface IAuthRepository{
     resetPassword(userID: string, password: string): Promise<boolean>
     saveOauthUser(email: string, provider: string, name: string, picture: string): Promise<Auth>
     getBasicProfile(userID: string): Promise<{username: string, profilePicture: string | null, userID: string}>
+    getEmailByUserId(userId: string): Promise<string>
 }

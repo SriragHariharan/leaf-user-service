@@ -7,7 +7,7 @@ export interface IAuthService {
     validateOTP(otp: string, userID: string): Promise<{ accessToken: string; refreshToken: string; username: string; profilePicture: string | null }>;
     resendOtp(userID: string): Promise<boolean>;
     resetPassword(userID: string, password: string): Promise<boolean>;
-    generateAndStoreOtp(userID: string): Promise<boolean>;
+    generateAndStoreOtp(userID: string): Promise<number>;
     ouathSignup(email: string, picture: string, name: string, provider: string): Promise<{ accessToken: string; refreshToken: string; username: string; profilePicture: string | null }>;
     generateNewTokens(userID: string): Promise<{accessToken: string, refreshToken: string}>
 }

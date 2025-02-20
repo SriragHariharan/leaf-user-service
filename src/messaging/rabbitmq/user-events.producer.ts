@@ -7,7 +7,7 @@ async function sendUserEvents(userDetails: Auth): Promise<void> {
     let connection;
     try {
         // Create a TCP connection
-        connection = await amqp.connect("amqp://myuser:mypassword@localhost");
+        connection = await amqp.connect(process.env.RABBITMQ_CONNECTION_STRING!);
 
         // Create a channel (communication line within tcp connection)
         const channel = await connection.createChannel();

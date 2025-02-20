@@ -152,6 +152,24 @@ class AuthRepository implements IAuthRepository {
             throw new Error("Something went wrong. Please try again.");
         }
     }
+
+    /* get email id of a specific user */
+    async getEmailByUserId(userId: string): Promise<string> {
+        try {
+            const email = await prisma.user.findUnique({
+                where: { id: userId },
+                select: { email: true },
+            });           
+
+            if (!email) {               
+                throw createHttpError(404, "User not found");
+            }
+
+            return email.email;
+        } catch (error) {   
+            throw new Error("Something went wrong. Please try again.");
+        }
+    }
 }
 
 export default AuthRepository;
