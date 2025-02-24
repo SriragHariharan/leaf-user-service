@@ -7,6 +7,7 @@ import { User } from "../interfaces/auth.interface";
 import { IFriendRepository } from "../interfaces/IFriendRepository";
 import { IFriendService } from "../interfaces/IFriendService";
 import logger from "../helpers/logger";
+import sendFriendRequestNotification from "../messaging/rabbitmq/friend-request.produer";
 
 class FriendService implements IFriendService {
 
@@ -36,6 +37,7 @@ class FriendService implements IFriendService {
                 return true;
             }else{
                 let newFriendResponse = await this.friendRepository.sendFriendRequest(userID, friendID);
+                sendFriendRequestNotification(userID, friendID);
                 console.log(newFriendResponse);
                 return true;
             }
