@@ -6,6 +6,7 @@ import bodyParser from 'body-parser';
 import profileRouter from './routes/profile.routes';
 import logger from './helpers/logger';
 import friendRouter from './routes/friend.routes';
+import adminRouter from './routes/admin.routes';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(bodyParser.json())
 app.use('/auth', authRouter)
 app.use('/profile', profileRouter)
 app.use('/friend', friendRouter)
+app.use("/admin", adminRouter)
 
 //handle endpoints not found: 404
 app.use(async (req, res, next) => {

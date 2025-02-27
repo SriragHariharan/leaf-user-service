@@ -5,7 +5,7 @@ import resizeImage from "../helpers/sharp.helper";
 import uploadToS3 from "../helpers/s3Bucket.helper";
 import logger from "../helpers/logger";
 import createHttpError from "http-errors";
-import sendUserEvents from "../messaging/rabbitmq/producer";
+import sendUserEvents from "../messaging/rabbitmq/user-events.producer";
 
 class ProfileService implements IProfileService {
     private profileRepository: IProfileRepository;
