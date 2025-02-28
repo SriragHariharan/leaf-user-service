@@ -12,7 +12,7 @@ export interface Auth {
 }
 
 export interface User { 
-    id?: number; 
+    id?: string; 
     userID?: string; 
     username?: string; 
     description?: string | null; 

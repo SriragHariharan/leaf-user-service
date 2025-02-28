@@ -35,6 +35,130 @@ class AdminController {
             }
         }
     }
+
+    //get user count
+    async getUsersCount(req: Request, res: Response, next: NextFunction) {
+        try {
+            const count = await this.adminService.getUsersCount();
+            return res.status(200).json({
+                success: true,
+                message: "User count fetched successfully",
+                data: { count },
+            });
+        } catch (error) {
+            if (error instanceof createHttpError.HttpError) {
+                next(error);
+            } else {
+                next(createHttpError(500, "An unexpected error occurred"));
+            }
+        }
+    }
+
+    //get the latest 10 reports
+    async getLatestReports(_req: Request, res: Response, next: NextFunction) {
+        try {
+            const reports = await this.adminService.getLatestReports();
+            return res.status(200).json({
+                success: true,
+                message: "Latest reports fetched successfully",
+                data: { reports },
+            });
+        } catch (error) {
+            if (error instanceof createHttpError.HttpError) {
+                next(error);
+            } else {
+                next(createHttpError(500, "An unexpected error occurred"));
+            }
+        }
+    }
+
+    async getUsers(req: Request, res: Response, next: NextFunction) {
+        try {   
+            const searchParams = req.query.search;
+            const statusParams = req.query.status
+            if(!searchParams && !statusParams){
+                const users = await this.adminService.getLatestUsers();
+                return res.status(200).json({
+                    success: true,
+                    message: "Users fetched successfully",
+                    data: { users },
+                });
+            }else{
+                const users = await this.adminService.searchUsersByNameAndStatus(searchParams, statusParams);
+                return res.status(200).json({
+                    success: true,
+                    message: "Users fetched successfully",
+                    data: { users },
+                });
+            }
+        } catch (error) {
+            if (error instanceof createHttpError.HttpError) {
+                next(error);
+            } else {
+                next(createHttpError(500, "An unexpected error occurred")); 
+            }
+        }
+    }
+
+    //block user
+    async blockUser(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userID } = req.params;
+            await this.adminService.blockUser(userID);
+            return res.status(200).json({
+                success: true,
+                message: "User blocked successfully",
+                data: null
+            });
+        } catch (error) {
+            if (error instanceof createHttpError.HttpError) {
+                next(error);
+            } else {
+                next(createHttpError(500, "An unexpected error occurred"));
+            }
+        }
+    }
+
+    //unblock user
+    async unblockUser(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userID } = req.params;
+            await this.adminService.unblockUser(userID);
+            return res.status(200).json({
+                success: true,
+                message: "User unblocked successfully",
+                data: null
+            });
+        } catch (error) {
+            if (error instanceof createHttpError.HttpError) {
+                next(error);
+            } else {
+                next(createHttpError(500, "An unexpected error occurred"));
+            }
+        }
+    }
+
+    //get profile details
+    async getProfileDetails(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userID } = req.params;
+            const userDetails = await this.adminService.getProfileDetails(userID);
+            if(!userDetails){
+                throw createHttpError(404, "User not found");
+            }
+            return res.status(200).json({
+                success: true,
+                message: "Profile details fetched successfully",
+                data: { userDetails }
+            });
+        } catch (error) {
+            if (error instanceof createHttpError.HttpError) {
+                next(error);
+            } else {
+                next(createHttpError(500, "An unexpected error occurred"));
+            }
+        }
+    }
 }
 
 export default AdminController;
