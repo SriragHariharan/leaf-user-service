@@ -35,20 +35,20 @@ class AdminRepository implements IAdminRepository {
         try {
             const reports = await prisma.report.findMany({
                 where: {
-                    status: 'pending', // Filter reports with status 'pending'
+                    status: 'pending',
                 },
                 orderBy: {
-                    createdAt: 'desc', // Sort by createdAt in descending order (latest first)
+                    createdAt: 'desc',
                 },
                 include: {
                     Reporter: {
                         include: {
-                            Profile: true, // Include the reporter's profile
+                            Profile: true,
                         },
                     },
                     Reported: {
                         include: {
-                            Profile: true, // Include the reported user's profile
+                            Profile: true,
                         },
                     },
                 },
@@ -190,6 +190,44 @@ class AdminRepository implements IAdminRepository {
         } catch (error) {
             console.error('Error getting profile details:', error);
             throw new Error('Failed to get profile details');
+        }
+    }
+
+    //get all reports of a specific user
+    async getReportsByUserId(userId: string): Promise<Report[]> {
+        try {
+            const reports = await prisma.report.findMany({
+                where: {
+                    Reported: {
+                        id: userId,
+                    },
+                },
+                include: {
+                    Reporter: {
+                        include: {
+                            Profile: true,
+                        },
+                    }
+                },
+            });
+            return reports;
+        } catch (error) {
+            console.error('Error fetching reports by user ID:', error);
+            throw new Error('Failed to fetch reports by user ID');
+        }
+    }
+
+    //update the status of the report
+    async updateReportStatus(reportId: string, status: string): Promise<boolean> {
+        try {
+            await prisma.report.update({
+                where: { id: Number(reportId) },
+                data: { status: status },
+            });
+            return true;
+        } catch (error) {
+            console.error('Error updating report status:', error);
+            throw new Error('Failed to update report status');
         }
     }
 

@@ -159,6 +159,50 @@ class AdminController {
             }
         }
     }
+
+    async getReportsByUserID(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userID } = req.params;
+            if(!userID){
+                throw createHttpError(404, "User not found");
+            }
+            const reports = await this.adminService.getReportsByUserId(userID);
+            return res.status(200).json({
+                success: true,
+                message: "Reports fetched successfully",
+                data: { reports }
+            });
+        } catch (error) {
+            if (error instanceof createHttpError.HttpError) {
+                next(error);
+            } else {
+                next(createHttpError(500, "An unexpected error occurred"));
+            }
+        }
+    }
+
+    //update the report status
+    async updateReportStatus(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { reportID } = req.params;
+            const { status } = req.body;
+            if(status !== "resolved" && status !== "rejected"){
+                throw createHttpError(400, "Invalid status");
+            }
+            await this.adminService.updateReportStatus(reportID, status);
+            return res.status(200).json({
+                success: true,
+                message: "Report status updated successfully",
+                data: null
+            });
+        } catch (error) {
+            if (error instanceof createHttpError.HttpError) {
+                next(error);
+            } else {
+                next(createHttpError(500, "An unexpected error occurred"));
+            }
+        }
+    }
 }
 
 export default AdminController;

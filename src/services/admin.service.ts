@@ -111,6 +111,24 @@ class AdminService implements IAdminService {
             throw error;
         }
     }
+
+    //get reports of a specifc user
+    async getReportsByUserId(userId: string): Promise<Report[]> {
+        try {
+            return await this.adminRepository.getReportsByUserId(userId);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    //update report status
+    async updateReportStatus(reportId: string, status: string): Promise<boolean> {
+        try {
+            return await this.adminRepository.updateReportStatus(reportId, status);
+        } catch (error) {
+            throw error;
+        }
+    }
 };
 
 export default AdminService;

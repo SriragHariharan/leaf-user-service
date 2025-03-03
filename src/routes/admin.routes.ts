@@ -46,5 +46,14 @@ adminRouter.get("/profile/:userID", validateAdminToken, (req: Request, res: Resp
     adminController.getProfileDetails(req, res, next);
 });
 
+//get reports by userID
+adminRouter.get("/reported/:userID", validateAdminToken, (req: Request, res: Response, next: NextFunction) => {
+    adminController.getReportsByUserID(req, res, next);
+});
+
+//update report status
+adminRouter.put("/report/:reportID", validateAdminToken, (req: Request, res: Response, next: NextFunction) => {
+    adminController.updateReportStatus(req, res, next);
+});
 
 export default adminRouter;
