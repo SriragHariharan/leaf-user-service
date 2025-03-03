@@ -70,6 +70,13 @@ class AuthService implements IAuthService {
         try {
             // Check if user exists
             const userDetails = await this.authRepository.findByEmail(authDetails.email!);
+
+            //check if user is blocked or not
+            if(userDetails?.status === "blocked"){
+                logger.warn(`User is blocked. Email: ${authDetails.email}`);
+                throw createHttpError(401, "User is blocked by admin from accessing the application");
+            }
+
             if (!userDetails) {
                 logger.warn(`User not found. Email: ${authDetails.email}`);
                 throw createHttpError(401, "Invalid user credentials");
@@ -267,6 +274,11 @@ class AuthService implements IAuthService {
 
                 return { accessToken, refreshToken, username: name, profilePicture: picture };
             } else {
+                if(userDetails?.status === "blocked") {
+                    logger.warn(`User is blocked. Email: ${email}`);
+                    throw createHttpError(401, "User is blocked by admin from accessing the application");
+                }
+
                 if (userDetails.provider === provider) {
                     logger.info(`Existing user signing in via OAuth. Email: ${email}`);
                     const accessToken = signAccessToken(userDetails.id!);

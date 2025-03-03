@@ -8,7 +8,8 @@ export interface Auth {
     provider?: string|null,
     profilePicture?: string|null
     type?: string|null
-    userID?: string|null
+    userID?: string|null,
+    status?: string
 }
 
 export interface User { 
