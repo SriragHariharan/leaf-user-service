@@ -2,7 +2,6 @@ import createHttpError from "http-errors";
 import prisma from "../helpers/prisma.helper";
 import { IAdminRepository } from "../interfaces/IAdminRepository";
 import { Report } from "../interfaces/report.interface";
-import { User } from "@prisma/client";
 import logger from "../helpers/logger";
 
 class AdminRepository implements IAdminRepository {
@@ -209,7 +208,7 @@ class AdminRepository implements IAdminRepository {
     }
 
     // Get profile details including user info
-    async getProfileDetails(userID: string): Promise<User> {
+    async getProfileDetails(userID: string): Promise<any> {
         logger.debug(`Entering getProfileDetails method. Param: ${userID}`, { method: "getProfileDetails", layer: "repository" });
         try {
             logger.info(`Fetching profile details for userID: ${userID}`, { layer: "repository" });
