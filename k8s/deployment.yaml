@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: leaf-user-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: leaf-user-service
+  template:
+    metadata:
+      labels:
+        app: leaf-user-service
+    spec:
+      containers:
+        - name: leaf-user-service
+          image: sriraghariharan/leaf-user-service:v1
+          ports:
+            - containerPort: 2001
+          envFrom:
+            - configMapRef:
+                name: leaf-user-service-config
+          # resources:
+          #   requests:
+          #     memory: "256Mi"
+          #     cpu: "500m"  # 500 milliCPU, or 0.5 CPU cores
+          #   limits:
+          #     memory: "512Mi"
+          #     cpu: "1"  # 1 CPU core
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: leaf-user-service
+spec:
+  selector:
+    app: leaf-user-service
+  ports:
+    - protocol: TCP
+      port: 2001
+      targetPort: 2001

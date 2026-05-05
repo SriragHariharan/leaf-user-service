@@ -8,6 +8,8 @@ RUN npm install --force
 
 COPY . .
 
+RUN npx prisma generate
+
 RUN npm run build
 
 EXPOSE 2001

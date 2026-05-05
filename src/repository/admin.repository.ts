@@ -229,7 +229,7 @@ class AdminRepository implements IAdminRepository {
     }
 
     // Get all reports of a specific user
-    async getReportsByUserId(userId: string): Promise<Report[]> {
+    async getReportsByUserId(userId: string): Promise<Report[] | any[]> {
         logger.debug(`Entering getReportsByUserId method. Param: ${userId}`, { method: "getReportsByUserId", layer: "repository" });
         try {
             logger.info(`Fetching reports for userID: ${userId}`, { layer: "repository" });

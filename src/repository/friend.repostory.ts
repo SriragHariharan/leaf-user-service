@@ -296,17 +296,25 @@ class FriendRepository implements IFriendRepository {
 
             // Map each friend record to attach the correct friend's profile.
             const mappedFriends = friends.map((friend) => {
-                let friendProfile = null;
+                let friendProfile: {
+                    username: string;
+                    description: string | null;
+                    userID: string;
+                    profilePicture: string | null;
+                } | null = null; // Explicitly allow object or null
+
                 if (friend.userID === userID) {
-                    friendProfile = friend.FriendOf?.Profile;
+                    friendProfile = friend.FriendOf?.Profile ?? null;
                 } else if (friend.friendID === userID) {
-                    friendProfile = friend.User?.Profile;
+                    friendProfile = friend.User?.Profile ?? null;
                 }
+
                 return {
                     ...friend,
-                    friendProfile,
+                    friendProfile, // Now correctly typed
                 };
             });
+
 
             logger.info(`[FriendRepository] Successfully fetched ${friends.length} friends for userID: ${userID}, page: ${page}`, { layer: "repository" });
             return mappedFriends;

@@ -1,0 +1,75 @@
+# ConfigMap for Logstash configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: default  # Change to your desired namespace
+data:
+  logstash.conf: |
+    input {
+      tcp {
+        port => 5000  # Logstash listens on port 5000 for incoming logs
+        codec => json  # Assumes logs are in JSON format
+      }
+    }
+
+    output {
+      elasticsearch {
+        hosts => ["http://34.93.107.253:9200/"] 
+        index => "logs-%{+YYYY.MM.dd}"
+        user => "elastic"
+        password => "password"
+      }
+    }
+
+---
+# Deployment for Logstash pod
+# Deployment for Logstash pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  namespace: default  # Change to your desired namespace
+spec:
+  replicas: 1  # Number of replicas for Logstash
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers:
+        - name: logstash
+          image: docker.elastic.co/logstash/logstash:8.5.0  # Replace with the appropriate version
+          ports:
+            - containerPort: 5000  # Port Logstash listens on for incoming logs
+          volumeMounts:
+            - name: logstash-config
+              mountPath: /usr/share/logstash/pipeline
+          resources:
+            requests:
+              memory: "512Mi"  # Amount of memory Kubernetes should reserve for the container
+              cpu: "500m"      # Amount of CPU Kubernetes should reserve for the container
+            limits:
+              memory: "1Gi"    # Maximum memory the container can use
+              cpu: "1"         # Maximum CPU the container can use
+      volumes:
+        - name: logstash-config
+          configMap:
+            name: logstash-config  # Refers to the ConfigMap we created earlier
+            
+---
+# Service for Logstash
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+  namespace: default 
+spec:
+  ports:
+    - port: 5000 
+      targetPort: 5000 
+  selector:
+    app: logstash 

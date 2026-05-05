@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: leaf-monster-tls
+  namespace: default
+spec:
+  secretName: leaf-monster-tls  # Must match expected TLS secret name
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: api.leaf.monster 
+  dnsNames:
+    - api.leaf.monster 

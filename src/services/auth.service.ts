@@ -59,7 +59,7 @@ class AuthService implements IAuthService {
             logger.info(`OTP sent successfully to notification service. UserID: ${user.id}`, { layer: "service" });
 
             return user.id!;
-        } catch (error) {
+        } catch (error: any) {
             if (createHttpError.isHttpError(error)) {
                 logger.error(`HTTP error occurred while creating new user. Email: ${authDetails.email}`, { method: "createNewUser", layer: "service", email: authDetails.email, error });
                 throw error;
@@ -109,7 +109,7 @@ class AuthService implements IAuthService {
             logger.info(`Basic profile fetched successfully. Email: ${authDetails.email}`, { layer: "service" });
 
             return { accessToken, refreshToken, username: basicUserProfile.username, profilePicture: basicUserProfile.profilePicture };
-        } catch (error) {
+        } catch (error: any) {
             if (createHttpError.isHttpError(error)) {
                 logger.error(`HTTP error occurred while logging in user. Email: ${authDetails.email}`, { method: "loginUser", layer: "service", email: authDetails.email, error });
                 throw error;
@@ -139,7 +139,7 @@ class AuthService implements IAuthService {
             logger.debug(`Generating reset link. Email: ${email}`, { layer: "service" });
             const accessToken = signAccessToken(userDetails.id!);
             logger.debug(`Access token generated: ${accessToken}. Email: ${email}`, { layer: "service" });
-            const resetLink = `http://localhost:8080/reset-password?token=${accessToken}`;
+            const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${accessToken}`;
             logger.info(`Reset link generated for user. Email: ${email}`, { layer: "service" });
             logger.debug(`Reset link: ${resetLink}. Email: ${email}`, { layer: "service" });
 
@@ -148,7 +148,7 @@ class AuthService implements IAuthService {
             logger.debug(`Notification service request sent. Email: ${email}. Reset link: ${resetLink}`, { layer: "service" });
 
             return true;
-        } catch (error) {
+        } catch (error: any) {
             if (createHttpError.isHttpError(error)) {
                 logger.error(`HTTP error occurred while confirming user. Email: ${email}. Error: ${error.message}`, { method: "confirmUser", layer: "service" });
                 throw error;
@@ -212,7 +212,7 @@ class AuthService implements IAuthService {
             logger.debug(`Redis cache updated. UserID: ${otpDetails.userID}. Refresh token: ${refreshToken}`, { layer: "service" });
 
             return { accessToken, refreshToken, username: basicUserProfile.username, profilePicture: basicUserProfile.profilePicture };
-        } catch (error) {
+        } catch (error: any) {
             if (createHttpError.isHttpError(error)) {
                 logger.error(`HTTP error occurred while validating OTP. UserID: ${userID}. Error: ${error.message}`, { method: "validateOTP", layer: "service" });
                 throw error;
@@ -246,7 +246,7 @@ class AuthService implements IAuthService {
             logger.debug(`Notification service request sent. UserID: ${userID}. Email: ${email}. OTP: ${otp}`, { layer: "service" });
 
             return true;
-        } catch (error) {
+        } catch (error: any) {
             if (createHttpError.isHttpError(error)) {
                 logger.error(`HTTP error occurred while resending OTP. UserID: ${userID}. Error: ${error.message}`, { method: "resendOtp", layer: "service" });
                 throw error;
@@ -274,7 +274,7 @@ class AuthService implements IAuthService {
             logger.debug(`Password reset database operation completed. UserID: ${userID}`, { layer: "service" });
 
             return true;
-        } catch (error) {
+        } catch (error: any) {
             if (createHttpError.isHttpError(error)) {
                 logger.error(`HTTP error occurred while resetting password. UserID: ${userID}. Error: ${error.message}`, { method: "resetPassword", layer: "service" });
                 throw error;
@@ -307,7 +307,7 @@ class AuthService implements IAuthService {
             logger.debug(`OTP stored in database. UserID: ${userID}. OTP: ${otp}. Expiration time: ${expiresAt.toISOString()}`, { layer: "service" });
 
             return otp;
-        } catch (error) {
+        } catch (error: any) {
             logger.error(`Error generating and storing OTP. UserID: ${userID}. Error: ${error.message}`, { method: "generateAndStoreOtp", layer: "service" });
             throw createHttpError(500, "An unexpected error occurred");
         } finally {
@@ -364,7 +364,7 @@ class AuthService implements IAuthService {
                     throw new Error("Try other signin methods");
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             if (createHttpError.isHttpError(error)) {
                 logger.error(`Error in OAuth signup. Email: ${email}`, { error, layer: "service" });
                 throw error;
@@ -389,7 +389,7 @@ class AuthService implements IAuthService {
             await redisHelper.set(`RefreshToken:${userID}`, refreshToken, 7 * 24 * 60 * 60); //store in redis for seven days
             logger.info(`Stored refresh token in redis cache for the user: ${userID}`, { layer: "service" });
             return { accessToken, refreshToken };
-        } catch (error) {
+        } catch (error: any) {
             if (createHttpError.isHttpError(error)) {
                 logger.error(`Error in generateNewTokens. UserID: ${userID}`, { error, layer: "service" });
                 throw error;

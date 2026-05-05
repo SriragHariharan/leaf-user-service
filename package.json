@@ -4,7 +4,7 @@
   "description": "A microservice of the leaf application that is responsible for performing authentication and profile related things.",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon dist/app.js",
+    "dev": "set NODE_ENV=development && nodemon dist/app.js",
     "start": "node dist/app.js",
     "build": "tsc"
   },
@@ -26,7 +26,8 @@
     "sharp": "^0.33.5",
     "speakeasy": "^2.0.0",
     "typescript": "^5.8.2",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "winston3-logstash-transport": "^1.2.3"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.6",

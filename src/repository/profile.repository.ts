@@ -60,7 +60,7 @@ class ProfileRepository implements IUsernameRepository, IProfileRepository {
 
             let isFriend = false;
             let friendStatus = 'not_friend';
-            let friendshipId = null;
+            let friendshipId: number | null = null;
 
             if (friendship) {
                 friendshipId = friendship.id;
