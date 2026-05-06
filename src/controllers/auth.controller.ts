@@ -18,19 +18,13 @@ class AuthController {
         logger.debug(`Entering signupUser method. Endpoint: ${req.path}, Method: ${req.method}`, { method: "signupUser", layer: "controller" });
         try {
             logger.info(`Signup request received. Endpoint: ${req.path}, Method: ${req.method}, Email: ${req.body.email}`, { layer: "controller" });
-            const { email, username, password, confirmPassword } = req.body;
+            const { email, username, password } = req.body;
 
             // Validate required fields
-            if (!email || !username || !password || !confirmPassword) {
-                const missingFields = ['email', 'username', 'password', 'confirmPassword'].filter(field => !req.body[field]);
+            if (!email || !username || !password) {
+                const missingFields = ['email', 'username', 'password'].filter(field => !req.body[field]);
                 logger.warn(`Signup validation failed. Missing fields: ${missingFields.join(', ')}`, { email: email || '[NOT PROVIDED]', layer: "controller" });
                 throw createHttpError(400, "Invalid user credentials");
-            }
-
-            // Validate password match
-            if (password !== confirmPassword) {
-                logger.warn(`Password mismatch. Email: ${email}`, { layer: "controller" });
-                throw createHttpError(400, "Passwords do not match");
             }
 
             logger.info(`Creating new user. Email: ${email}`, { layer: "controller" });
