@@ -11,21 +11,16 @@ class ProfileController {
         this.profileService = profileService;
     }
 
-    /* Get profile details for the user or a friend */
+    /* Get profile details for the authenticated user or another user by ID */
     async getProfileDetails(req: Request, res: Response, next: NextFunction) {
         logger.debug(`Entering getProfileDetails method. Params: ${req.params.id}`, { method: "getProfileDetails", layer: "controller" });
         try {
             const urlID = req.params.id;
             const userID = req.user?.aud!;
-            if (urlID === "self") {
-                const userDetails = await this.profileService.getProfileDetails(userID);
-                logger.info(`Successfully fetched profile details for userID: ${userID}`, { layer: "controller" });
-                return res.status(200).json({ success: true, message: "", data: { ...userDetails } });
-            } else {
-                const userDetails = await this.profileService.getProfileDetailsWithFriendshipStatus(req.user?.aud!, req.params.id);
-                logger.info(`Successfully fetched profile details with friendship status for userID: ${userID}`, { layer: "controller" });
-                return res.status(200).json({ success: true, message: "", data: { ...userDetails } });
-            }
+            const profileUserID = urlID === "self" ? userID : urlID;
+            const userDetails = await this.profileService.getProfileDetails(profileUserID);
+            logger.info(`Successfully fetched profile details for userID: ${profileUserID}`, { layer: "controller" });
+            return res.status(200).json({ success: true, message: "", data: { ...userDetails } });
         } catch (error) {
             logger.error(`Error fetching profile details for userID: ${req.params.id}`, { error, layer: "controller" });
             next(error);
@@ -134,7 +129,7 @@ class ProfileController {
         }
     }
 
-    /* Get travel history for the user or a friend */
+    /* Get travel history for the authenticated user or another user by ID */
     async getTravelHistory(req: Request, res: Response, next: NextFunction) {
         logger.debug(`Entering getTravelHistory method. Params: ${req.params.id}`, { method: "getTravelHistory", layer: "controller" });
         try {
@@ -179,7 +174,7 @@ class ProfileController {
         }
     }
 
-    /* Get bucket list for the user or a friend */
+    /* Get bucket list for the authenticated user or another user by ID */
     async getBucketList(req: Request, res: Response, next: NextFunction) {
         logger.debug(`Entering getBucketList method. Params: ${req.params.id}`, { method: "getBucketList", layer: "controller" });
         try {

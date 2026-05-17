@@ -35,27 +35,6 @@ class ProfileService implements IProfileService {
         }
     }
 
-    /* get profile details with friendship status */
-    async getProfileDetailsWithFriendshipStatus(userID: string, profileID: string): Promise<Object> {
-        logger.debug(`Entering getProfileDetailsWithFriendshipStatus method. Params: ${userID}, ${profileID}`, { method: "getProfileDetailsWithFriendshipStatus", layer: "service" });
-        try {
-            logger.info(`Fetching profile details with friendship status for userID: ${userID}`, { layer: "service" });
-            const userDetails = await this.profileRepository.getProfileDetailsWithFriendshipStatus(userID, profileID);
-            logger.info(`Successfully fetched profile details with friendship status for userID: ${userID}`, { layer: "service" });
-            return userDetails;
-        } catch (error) {
-            if (createHttpError.isHttpError(error)) {
-                logger.error(`HttpError in getProfileDetailsWithFriendshipStatus. Params: ${userID}, ${profileID}`, { error, layer: "service" });
-                throw error;
-            } else {
-                logger.error(`Unexpected error in getProfileDetailsWithFriendshipStatus. Params: ${userID}, ${profileID}`, { error, layer: "service" });
-                throw createHttpError(500, "Unable to get user profile details");
-            }
-        } finally {
-            logger.debug(`Exiting getProfileDetailsWithFriendshipStatus method. Params: ${userID}, ${profileID}`, { method: "getProfileDetailsWithFriendshipStatus", layer: "service" });
-        }
-    }
-
     /* Update the existing username */
     async updateExistingUsername(username: string, userID: string): Promise<string> {
         logger.debug(`Entering updateExistingUsername method. Params: ${username}, ${userID}`, { method: "updateExistingUsername", layer: "service" });

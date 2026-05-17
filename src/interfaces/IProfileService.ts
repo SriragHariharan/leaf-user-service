@@ -22,8 +22,6 @@ export interface IProfileService {
     getBucketListDestination(userID: string): Promise<Object>;
     uploadPicture(imageBuffer: Buffer, sizes: Size[], type: string, userID: string): Promise<string>;
 
-    getProfileDetailsWithFriendshipStatus(userID: string, profileID: string): Promise<Object>
-
     reportUser(
         reporterID: string,  //id of the persom reporting the profile
         reportedID: string, //id of the reported profile

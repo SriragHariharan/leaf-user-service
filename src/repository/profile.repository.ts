@@ -34,60 +34,6 @@ class ProfileRepository implements IUsernameRepository, IProfileRepository {
         }
     }
 
-    /* get profile details with friendship status */
-    async getProfileDetailsWithFriendshipStatus(userID: string, profileID: string): Promise<Object> {
-        logger.debug(`Entering getProfileDetailsWithFriendshipStatus method. Params: ${userID}, ${profileID}`, { method: "getProfileDetailsWithFriendshipStatus", layer: "repository" });
-        try {
-            logger.info(`Fetching profile details for profileID: ${profileID} by userID: ${userID}`, { layer: "repository" });
-
-            const userProfile = await prisma.profile.findUnique({
-                where: { userID: profileID },
-            });
-
-            if (!userProfile) {
-                logger.warn(`Profile not found for profileID: ${profileID}`, { layer: "repository" });
-                throw createHttpError(404, "User not found");
-            }
-
-            const friendship = await prisma.friends.findFirst({
-                where: {
-                    OR: [
-                        { userID: userID, friendID: profileID, status: { in: ['accepted', 'pending'] } },
-                        { userID: profileID, friendID: userID, status: { in: ['accepted', 'pending'] } },
-                    ],
-                },
-            });
-
-            let isFriend = false;
-            let friendStatus = 'not_friend';
-            let friendshipId: number | null = null;
-
-            if (friendship) {
-                friendshipId = friendship.id;
-                if (friendship.status === 'accepted') {
-                    isFriend = true;
-                    friendStatus = 'friend';
-                } else if (friendship.status === 'pending') {
-                    friendStatus = 'pending';
-                }
-            }
-
-            logger.info(`Successfully fetched profile details for profileID: ${profileID} with friendship status: ${friendStatus}`, { layer: "repository" });
-            return { ...userProfile, isFriend, friendStatus, friendshipId };
-        } catch (error) {
-            if (createHttpError.isHttpError(error)) {
-                logger.error(`HttpError in getProfileDetailsWithFriendshipStatus. Params: ${userID}, ${profileID}`, { error, layer: "repository" });
-                throw error;
-            } else {
-                logger.error(`Unexpected error in getProfileDetailsWithFriendshipStatus. Params: ${userID}, ${profileID}`, { error, layer: "repository" });
-                throw createHttpError(500, "Something went wrong.");
-            }
-        } finally {
-            logger.debug(`Exiting getProfileDetailsWithFriendshipStatus method. Params: ${userID}, ${profileID}`, { method: "getProfileDetailsWithFriendshipStatus", layer: "repository" });
-        }
-    }
-
-
     async updateUsername(userID: string, username: string): Promise<string> {
         logger.debug(`Entering updateUsername method. Params: ${userID}, ${username}`, { method: "updateUsername", layer: "repository" });
         try {

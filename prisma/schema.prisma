@@ -16,8 +16,6 @@ model User {
 
   Profile       Profile?
   OTP           OTP[]
-  Friends       Friends[]       @relation("UserFriends")
-  FriendOf      Friends[]       @relation("FriendOf")
   TravelHistory TravelHistory[]
   BucketList    BucketList[]
   ImageGallery  ImageGallery[]
@@ -51,19 +49,6 @@ model Profile {
   createdAt      DateTime @default(now())
 
   User    User      @relation(fields: [userID], references: [id])
-  Friends Friends[]
-}
-
-model Friends {
-  id        Int      @id @default(autoincrement())
-  userID    String
-  friendID  String
-  status    String
-  createdAt DateTime @default(now())
-
-  User     User    @relation("UserFriends", fields: [userID], references: [id], map: "FK_UserFriends_User")
-  FriendOf User    @relation("FriendOf", fields: [friendID], references: [id], map: "FK_FriendOf_User")
-  Profile  Profile @relation(fields: [userID], references: [userID], map: "FK_Friends_Profile")
 }
 
 model TravelHistory {
