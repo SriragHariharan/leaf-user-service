@@ -8,8 +8,8 @@ import createHttpError from "http-errors";
 import { signAccessToken, signRefreshToken } from "../helpers/jwt.helper";
 import logger from "../helpers/logger";
 import redisHelper from "../helpers/redis.helper";
-import sendUserEvents from "../messaging/rabbitmq/user-events.producer";
-import sendValidationOtp from "../messaging/rabbitmq/otp.producer";
+import sendUserEvents from "../messaging/kafka/user-events.producer";
+import sendValidationOtp from "../messaging/kafka/otp.producer";
 
 class AuthService implements IAuthService {
     private authRepository: IAuthRepository;
