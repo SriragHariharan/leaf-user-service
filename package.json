@@ -4,7 +4,7 @@
   "description": "A microservice of the leaf application that is responsible for performing authentication and profile related things.",
   "main": "index.js",
   "scripts": {
-    "dev": "set NODE_ENV=development && nodemon dist/app.js",
+    "dev": "set NODE_ENV=development && tsx watch src/app.ts",
     "start": "node dist/app.js",
     "build": "tsc"
   },
@@ -13,7 +13,7 @@
   "dependencies": {
     "@prisma/client": "^6.2.1",
     "kafkajs": "^2.2.4",
-    "aws-sdk": "^2.1692.0",
+    "cloudinary": "^2.6.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "dotenv": "^16.4.7",
@@ -36,6 +36,7 @@
     "@types/multer": "^1.4.12",
     "@types/speakeasy": "^2.0.10",
     "nodemon": "^3.1.9",
-    "prisma": "^6.2.1"
+    "prisma": "^6.2.1",
+    "tsx": "^4.21.0"
   }
 }

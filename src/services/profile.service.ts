@@ -2,16 +2,26 @@ import { IProfileService } from "../interfaces/IProfileService";
 import { IProfileRepository } from "../interfaces/IProfileRepository";
 import { Size } from "../interfaces/size.interface";
 import resizeImage from "../helpers/sharp.helper";
-import uploadToS3 from "../helpers/s3Bucket.helper";
+import { uploadToCloudinary } from "../helpers/cloudinary.helper";
 import logger from "../helpers/logger";
 import createHttpError from "http-errors";
 import sendUserEvents from "../messaging/kafka/user-events.producer";
+import { toUserEventPayload } from "../messaging/kafka/user-event.payload";
 
 class ProfileService implements IProfileService {
     private profileRepository: IProfileRepository;
 
     constructor(profileRepository: IProfileRepository) {
         this.profileRepository = profileRepository;
+    }
+
+    private async publishFullUserState(userID: string): Promise<void> {
+        const profile = (await this.profileRepository.getProfileDetails(userID)) as {
+            userID: string;
+            username: string;
+            profilePicture: string | null;
+        };
+        sendUserEvents(toUserEventPayload(profile));
     }
 
     /* Get user profile details */
@@ -43,8 +53,8 @@ class ProfileService implements IProfileService {
             const updatedUsername = await this.profileRepository.updateExistingUsername(username, userID);
             logger.info(`Successfully updated username for userID: ${userID}`, { layer: "service" });
 
-            sendUserEvents({ type: "username", username: updatedUsername, userID });
-            logger.info(`Sent the updated username to other services via rabbitmq for userID: ${userID}`, { layer: "service" });
+            await this.publishFullUserState(userID);
+            logger.info(`Sent full user state to other services via Kafka for userID: ${userID}`, { layer: "service" });
 
             return updatedUsername;
         } catch (error) {
@@ -206,19 +216,19 @@ class ProfileService implements IProfileService {
 
             if (type === "profile") {
                 const profilePictureBufferString = croppedImagesArray[0]?.buffer;
-                const profilePictureImageName = `profile/${userID}-s200.jpg`;
-                const profilePictureUrl = await uploadToS3(profilePictureBufferString, profilePictureImageName);
+                const profilePicturePublicId = `profile-pic/${userID}`;
+                const profilePictureUrl = await uploadToCloudinary(profilePictureBufferString, profilePicturePublicId);
                 await this.profileRepository.updatePicture(userID, profilePictureUrl, type);
 
-                sendUserEvents({ type: "picture", profilePicture: profilePictureUrl, userID });
-                logger.info(`Sent the updated profile picture url to other services via rabbitmq for userID: ${userID}`, { layer: "service" });
+                await this.publishFullUserState(userID);
+                logger.info(`Sent full user state to other services via Kafka for userID: ${userID}`, { layer: "service" });
 
                 logger.info(`Successfully uploaded profile picture for userID: ${userID}`, { layer: "service" });
                 return profilePictureUrl;
             } else if (type === "cover") {
-                const coverPictureImageName = `cover/${userID}-s200x800.jpg`;
+                const coverPicturePublicId = `cover-pic/${userID}`;
                 const coverPictureBufferString = croppedImagesArray[0]?.buffer;
-                const coverPictureUrl = await uploadToS3(coverPictureBufferString, coverPictureImageName);
+                const coverPictureUrl = await uploadToCloudinary(coverPictureBufferString, coverPicturePublicId);
                 await this.profileRepository.updatePicture(userID, coverPictureUrl, type);
 
                 logger.info(`Successfully uploaded cover picture for userID: ${userID}`, { layer: "service" });

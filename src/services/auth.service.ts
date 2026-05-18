@@ -9,6 +9,7 @@ import { signAccessToken, signRefreshToken } from "../helpers/jwt.helper";
 import logger from "../helpers/logger";
 import redisHelper from "../helpers/redis.helper";
 import sendUserEvents from "../messaging/kafka/user-events.producer";
+import { toUserEventPayload } from "../messaging/kafka/user-event.payload";
 import sendValidationOtp from "../messaging/kafka/otp.producer";
 
 class AuthService implements IAuthService {
@@ -202,10 +203,10 @@ class AuthService implements IAuthService {
             logger.debug(`Access token generated: ${accessToken}. Refresh token generated: ${refreshToken}. UserID: ${userID}`, { layer: "service" });
             logger.info(`Tokens generated for user. UserID: ${userID}`, { layer: "service" });
 
-            logger.debug(`Sending basic profile to rabbitMQ. UserID: ${userID}`, { layer: "service" });
-            sendUserEvents({ type: "user", ...basicUserProfile });
-            logger.info(`Basic profile sent to rabbitMQ for UserID: ${userID}`, { layer: "service" });
-            logger.debug(`RabbitMQ request sent. UserID: ${userID}. Basic profile: ${JSON.stringify(basicUserProfile)}`, { layer: "service" });
+            logger.debug(`Sending basic profile to Kafka. UserID: ${userID}`, { layer: "service" });
+            sendUserEvents(toUserEventPayload(basicUserProfile));
+            logger.info(`Basic profile sent to Kafka for UserID: ${userID}`, { layer: "service" });
+            logger.debug(`Kafka request sent. UserID: ${userID}. Basic profile: ${JSON.stringify(basicUserProfile)}`, { layer: "service" });
 
             await redisHelper.set(`RefreshToken:${otpDetails.userID!}`, refreshToken, 7 * 24 * 60 * 60);
             logger.info(`Stored refresh token in redis cache for the user: ${otpDetails.userID}`, { layer: "service" });
@@ -335,9 +336,9 @@ class AuthService implements IAuthService {
                 await redisHelper.set(`RefreshToken:${resp.id!}`, refreshToken, 7 * 24 * 60 * 60); //store in redis for seven days
                 logger.info(`Stored refresh token in redis cache for the user: ${resp.id!}`, { layer: "service" });
 
-                /* send basic profile to rabbitMQ */
-                sendUserEvents({ type: "user", userID: resp.id!, username: name, profilePicture: picture });
-                logger.debug(`Basic profile sent to rabbitMQ for new user. UserID: ${resp.id!}`, { layer: "service" });
+                const basicUserProfile = await this.authRepository.getBasicProfile(resp.id!);
+                sendUserEvents(toUserEventPayload(basicUserProfile));
+                logger.debug(`Basic profile sent to Kafka for new user. UserID: ${resp.id!}`, { layer: "service" });
 
                 return { accessToken, refreshToken, username: name, profilePicture: picture };
             } else {
